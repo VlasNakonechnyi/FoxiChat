@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">JetpackComposeEx</string>
+
+
+    <string name="email_hint">Email</string>
+    <string name="password_hint">Password</string>
+    <string name="username_hint">Username</string>
+    <string name="phone_number_hint">Phone number</string>
+    <string name="sign_up_to_foxify">Sign Up to Foxify</string>
+    <string name="welcome_text">Welcome to Foxify</string>
+
+
 </resources>

@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.foxichat"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -61,11 +61,13 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
-    implementation(platform("com.google.firebase:firebase-bom:32.6.0"))
+    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
     //noinspection UseTomlInstead
     implementation("com.google.firebase:firebase-analytics")
     //noinspection UseTomlInstead
     implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
+    implementation(libs.firebase.messaging.ktx)
+    implementation(libs.androidx.work.runtime.ktx)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -76,7 +78,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     // Import the BoM for the Firebase platform
-    implementation(platform("com.google.firebase:firebase-bom:32.6.0"))
+    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
 
     // Add the dependency for the Realtime Database library
     // When using the BoM, you don't specify versions in Firebase library dependencies
@@ -84,9 +86,17 @@ dependencies {
     implementation("com.google.firebase:firebase-database")
     implementation(libs.androidx.navigation.compose)
 
-    implementation(platform("com.google.firebase:firebase-bom:32.6.0"))
+    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
 
     // Add the dependency for the Firebase Authentication library
     // When using the BoM, you don't specify versions in Firebase library dependencies
     implementation("com.google.firebase:firebase-auth")
+    // ************* Coroutines ***************
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    // ************* Retrofit2  ***************
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    // ************* Gson       ***************
+    implementation ("com.google.code.gson:gson:2.10.1")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("androidx.compose.material:material-icons-core:1.5.3")
 }

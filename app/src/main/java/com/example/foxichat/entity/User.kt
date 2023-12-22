@@ -1,9 +1,10 @@
 package com.example.foxichat.entity
 
 data class User (
+
     val email: String,
-    val userName: String,
-    val id: String
-) {
-    constructor() : this("", "", "")
-}
+    val display_name: String,
+    val phone_number: String,
+    val password: String,
+    val photo_url: String
+)
