@@ -1,7 +1,9 @@
 package com.example.foxichat.view_model
+import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
-import com.example.foxichat.entity.User
+import com.example.foxichat.auth.ChatAuth
+import com.example.foxichat.dto.User
 import com.example.foxichat.model.RemoteRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,7 +37,15 @@ class ChatViewModel : ViewModel() {
         }
     }
 
-    fun addNewUser(nav: NavHostController, email: String, password: String, username: String) {
+    fun addNewUser(
+        nav: NavHostController,
+        email: String,
+        password: String,
+        username: String,
+        phone: String,
+        hostState: SnackbarHostState,
+        scope: CoroutineScope
+    ) {
 //        val email: String,
 //        val displayName: String,
 //        val phoneNumber: String,
@@ -44,13 +54,17 @@ class ChatViewModel : ViewModel() {
         val user = User(
             email,
             username,
-            "0978443213",
+            phone,
             password,
-            ""
+            "nothing"
         )
         CoroutineScope(Dispatchers.IO).launch{
-            remoteRepository.createUser(user)
+            remoteRepository.createUser(scope, hostState, user)
         }
+    }
+    fun signIn(email: String, password: String) {
+        ChatAuth.signIn(email, password)
+
     }
 
 

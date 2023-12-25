@@ -1,4 +1,4 @@
-package com.example.foxichat.entity
+package com.example.foxichat.dto
 
 data class User (
 

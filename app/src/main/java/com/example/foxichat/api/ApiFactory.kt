@@ -1,6 +1,6 @@
 package com.example.foxichat.api
 
-import com.example.foxichat.entity.User
+import com.example.foxichat.dto.User
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.Body

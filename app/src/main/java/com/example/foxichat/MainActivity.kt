@@ -7,12 +7,20 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.NavHost
@@ -22,6 +30,7 @@ import com.example.foxichat.auth.ChatAuth
 import com.example.foxichat.navigation.Screen
 import com.example.foxichat.ui.theme.JetpackComposeExTheme
 import com.example.foxichat.user_interface.Screens
+import kotlinx.coroutines.CoroutineScope
 
 class MainActivity : ComponentActivity() {
 
@@ -39,6 +48,7 @@ class MainActivity : ComponentActivity() {
             ).show()
         }
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -47,30 +57,53 @@ class MainActivity : ComponentActivity() {
         setContent {
             JetpackComposeExTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    Scaffold {
-                        Box(modifier = Modifier.fillMaxSize().padding(it)) {
-                            NavigationHost()
+                    val scope = rememberCoroutineScope()
+                    val snackbarHostState = remember { SnackbarHostState() }
+                    Scaffold (
+                        snackbarHost = { SnackbarHost(hostState = snackbarHostState)}
+                    ) {
+                        Box(modifier = Modifier
+                            .fillMaxSize()
+                            .padding(it)) {
+                            NavigationHost(scope, snackbarHostState)
                         }
-                    }
-
                     }
                 }
             }
+        }
     }
+
     @Composable
-    fun NavigationHost() {
+    fun NavigationHost(scope: CoroutineScope, snackbarHostState: SnackbarHostState) {
         val navController = rememberNavController()
         NavHost(
             navController = navController,
-            startDestination = Screen.SIGNUP.name
+            startDestination = Screen.HOME.name,
+            enterTransition = {
+                fadeIn(
+                    animationSpec = tween(
+                        1000, easing = LinearEasing
+                    )
+                )
+            }
         ) {
 
             val screens = Screens(navController)
             composable(Screen.HOME.name) {
                 screens.HomeScreen()
             }
-            composable(Screen.SIGNUP.name) {
-                screens.SignUpScreen()
+            composable(
+                route = Screen.SIGNUP.name,
+                exitTransition = {
+                    fadeOut(
+                        animationSpec = tween(
+                            100, easing = LinearEasing
+                        )
+                    )
+                }
+
+            ) {
+                screens.SignUpScreen(scope, snackbarHostState)
             }
             composable(Screen.SIGNIN.name) {
                 screens.SignInScreen()
@@ -83,10 +116,14 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
     private fun askNotificationPermission() {
         // This is only necessary for API level >= 33 (TIRAMISU)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) ==
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) ==
                 PackageManager.PERMISSION_GRANTED
             ) {
                 // FCM SDK (and your app) can post notifications.
