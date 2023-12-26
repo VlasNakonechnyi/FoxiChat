@@ -74,7 +74,6 @@ import androidx.navigation.NavHostController
 import com.example.foxichat.R
 import com.example.foxichat.api.ApiFactory
 import com.example.foxichat.api.RetrofitClient
-import com.example.foxichat.auth.ChatAuth
 import com.example.foxichat.dto.Message
 import com.example.foxichat.dto.User
 import com.example.foxichat.navigation.Screen
@@ -91,9 +90,10 @@ import java.time.LocalDate
 import java.time.LocalTime
 
 class Screens(
-    private val nav: NavHostController
+    private val nav: NavHostController,
+    private val viewModel: ChatViewModel
 ) {
-    private var viewModel = ChatViewModel()
+
 
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -628,7 +628,8 @@ class Screens(
                     val email = emailValue.text.trim()
                     val password = passwordValue.text
                     if (email.isNotBlank() && password.isNotBlank()) {
-                        viewModel.signIn(email, password)
+                        viewModel.signIn(nav, email, password)
+
 
                     }
 
@@ -741,7 +742,8 @@ class Screens(
                 },
                 navigationIcon = {
                     IconButton(onClick = {
-                        nav.navigate(Screen.HOME.name)
+                        nav.navigate(Screen.SIGNIN.name)
+                        viewModel.signOut()
                     }) {
                         Icon(
                             Icons.Outlined.KeyboardArrowLeft,
@@ -766,7 +768,7 @@ class Screens(
                         .padding(10.dp)
                         .clip(RoundedCornerShape(30.dp))
                         .height(50.dp),
-                    containerColor = Color(75, 0, 130)
+                    containerColor = Color(72, 61, 139)
                 ) {
                     Row (
                         modifier = Modifier.fillMaxWidth(),
@@ -880,7 +882,7 @@ class Screens(
 
                     val body = mapOf(
                         "id" to "000000000000000000000000",
-                        "userId" to ChatAuth.auth.currentUser?.uid!!,
+                        "userId" to viewModel.auth.currentUser?.uid!!,
                         "deviceId" to token,
                         "timestamp" to timeToDbFormat()
                     )

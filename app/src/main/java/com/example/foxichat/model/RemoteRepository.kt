@@ -16,7 +16,7 @@ class RemoteRepository {
     private val retrofit = RetrofitClient.getClient()
     private val api = retrofit.create(ApiFactory::class.java)
     fun createUser(scope: CoroutineScope, hostState: SnackbarHostState, user: User) {
-        val response = api.createUserRequest(
+        api.createUserRequest(
             user
         ).enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {

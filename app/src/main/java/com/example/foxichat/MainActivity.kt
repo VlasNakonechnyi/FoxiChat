@@ -26,14 +26,17 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.foxichat.auth.ChatAuth
 import com.example.foxichat.navigation.Screen
 import com.example.foxichat.ui.theme.JetpackComposeExTheme
 import com.example.foxichat.user_interface.Screens
+import com.example.foxichat.view_model.ChatViewModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CoroutineScope
 
 class MainActivity : ComponentActivity() {
-
+    lateinit var auth: FirebaseAuth
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { isGranted: Boolean ->
@@ -51,8 +54,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        auth = Firebase.auth
+        val viewModel = ChatViewModel(auth)
 
-        ChatAuth.completeAuth()
         askNotificationPermission()
         setContent {
             JetpackComposeExTheme {
@@ -65,7 +69,7 @@ class MainActivity : ComponentActivity() {
                         Box(modifier = Modifier
                             .fillMaxSize()
                             .padding(it)) {
-                            NavigationHost(scope, snackbarHostState)
+                            NavigationHost(scope, snackbarHostState, viewModel)
                         }
                     }
                 }
@@ -74,11 +78,15 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun NavigationHost(scope: CoroutineScope, snackbarHostState: SnackbarHostState) {
+    fun NavigationHost(
+        scope: CoroutineScope,
+        snackbarHostState: SnackbarHostState,
+        viewModel: ChatViewModel
+    ) {
         val navController = rememberNavController()
         NavHost(
             navController = navController,
-            startDestination = Screen.HOME.name,
+            startDestination = if (auth.currentUser == null) Screen.SIGNIN.name else Screen.HOME.name,
             enterTransition = {
                 fadeIn(
                     animationSpec = tween(
@@ -88,7 +96,7 @@ class MainActivity : ComponentActivity() {
             }
         ) {
 
-            val screens = Screens(navController)
+            val screens = Screens(navController, viewModel)
             composable(Screen.HOME.name) {
                 screens.HomeScreen()
             }

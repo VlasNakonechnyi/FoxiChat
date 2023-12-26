@@ -3,7 +3,6 @@ package com.example.foxichat.service
 import android.util.Log
 import com.example.foxichat.api.ApiFactory
 import com.example.foxichat.api.RetrofitClient
-import com.example.foxichat.auth.ChatAuth
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import okhttp3.ResponseBody
@@ -109,8 +108,8 @@ class MessagingService : FirebaseMessagingService() {
         if (token != null) {
             val body = mapOf(
                 "id" to token,
-                "userId" to ChatAuth.auth.currentUser?.uid!!,
-                "deviceId" to ChatAuth.auth.currentUser?.uid!!,
+//                "userId" to .auth.currentUser?.uid!!,
+//                "deviceId" to ChatAuth.auth.currentUser?.uid!!,
                 "timestamp" to LocalDateTime.now().toString()
             )
             apiService.postRequest(body).enqueue(object : Callback<ResponseBody> {
