@@ -722,7 +722,7 @@ class Screens(
         Scaffold(modifier = Modifier.fillMaxSize(),
             floatingActionButton = {
                 FloatingActionButton(
-                    onClick = { /* do something */ },
+                    onClick = { viewModel.getAllRooms() },
                     shape = CircleShape,
                     containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
                     elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()

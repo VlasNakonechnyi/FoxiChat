@@ -1,9 +1,11 @@
 package com.example.foxichat.api
 
+import com.example.foxichat.dto.Room
 import com.example.foxichat.dto.User
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
 
 interface ApiFactory {
@@ -12,4 +14,7 @@ interface ApiFactory {
 
     @POST("/users/create-user")
     fun createUserRequest(@Body body: User): Call<ResponseBody>
+
+    @GET("/rooms/get-all-rooms")
+    fun getAllRooms(): Call<ResponseBody>
 }

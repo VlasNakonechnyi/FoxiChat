@@ -2,6 +2,9 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     id("com.google.gms.google-services")
+
+    id("com.google.devtools.ksp") version "1.9.22-1.0.16"
+
 }
 
 android {
@@ -98,5 +101,13 @@ dependencies {
     // ************* Gson       ***************
     implementation ("com.google.code.gson:gson:2.10.1")
     implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("androidx.compose.material:material-icons-core:1.5.3")
+    implementation("androidx.compose.material:material-icons-core:1.5.4")
+
+    val room_version = "2.6.1"
+
+    implementation("androidx.room:room-runtime:$room_version")
+    implementation ("androidx.room:room-ktx:$room_version")
+    annotationProcessor("androidx.room:room-compiler:$room_version")
+    // To use Kotlin Symbol Processing (KSP)
+    ksp("androidx.room:room-compiler:$room_version")
 }

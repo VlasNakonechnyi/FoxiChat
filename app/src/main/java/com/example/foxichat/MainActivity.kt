@@ -1,5 +1,6 @@
 package com.example.foxichat
 
+import android.app.Application
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -43,6 +44,7 @@ class MainActivity : ComponentActivity() {
         if (isGranted) {
             Toast.makeText(this, "Notifications permission granted", Toast.LENGTH_SHORT)
                 .show()
+
         } else {
             Toast.makeText(
                 this,
@@ -55,7 +57,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         auth = Firebase.auth
-        val viewModel = ChatViewModel(auth)
+        val viewModel = ChatViewModel(auth, application = application)
 
         askNotificationPermission()
         setContent {

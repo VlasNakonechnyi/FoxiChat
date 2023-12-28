@@ -1,21 +1,34 @@
 package com.example.foxichat.view_model
 
+import android.app.Application
 import android.util.Log
 import androidx.compose.material3.SnackbarHostState
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavHostController
+import com.example.foxichat.dto.Room
 import com.example.foxichat.dto.User
 import com.example.foxichat.model.RemoteRepository
+import com.example.foxichat.model.RoomsDatabase
 import com.example.foxichat.navigation.Screen
 import com.google.firebase.auth.FirebaseAuth
+import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import okhttp3.ResponseBody
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
-class ChatViewModel(val auth: FirebaseAuth) : ViewModel() {
+class ChatViewModel(val auth: FirebaseAuth, application: Application) :
+    AndroidViewModel(application) {
 
 
     private val remoteRepository = RemoteRepository()
+    private val roomsList: MutableLiveData<List<Room>> by lazy {
+        MutableLiveData<List<Room>>()
+    }
 
 
     // *********************** INPUT VALIDATION *******************************
@@ -62,8 +75,9 @@ class ChatViewModel(val auth: FirebaseAuth) : ViewModel() {
             "nothing"
         )
         CoroutineScope(Dispatchers.IO).launch {
-            remoteRepository.createUser(scope, hostState, user)
+            remoteRepository.createUser(nav, scope, hostState, user)
         }
+
     }
 
     fun signIn(nav: NavHostController, email: String, password: String) {
@@ -82,10 +96,53 @@ class ChatViewModel(val auth: FirebaseAuth) : ViewModel() {
 
     }
 
+    fun getAllRooms() {
+        CoroutineScope(Dispatchers.IO).launch {
+            loadAllRooms()
+        }
+    }
+
+    fun loadAllRooms() {
+        var gson = Gson()
+        remoteRepository.api.getAllRooms().enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                response.body()?.string()?.let {
+
+                    val rooms = gson.fromJson(it, Array<Room>::class.java).asList()
+
+
+                    Log.d("", rooms.toString())
+                    Log.d("CHAT_VIEW_MODEL", roomsList.toString())
+                    CoroutineScope(Dispatchers.IO).launch {
+
+                        insertRoomsToLocalDb(rooms)
+
+                    }
+
+
+                }
+
+                // insertRoomsToLocalDb()
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+
+            }
+        })
+    }
+
     fun signOut() {
         CoroutineScope(Dispatchers.IO).launch {
             auth.signOut()
         }
+    }
+
+    private suspend fun insertRoomsToLocalDb(rooms: List<Room>) {
+        Log.d("CHAT_VIEW_MODEL", rooms.toString())
+
+        RoomsDatabase(getApplication()).roomDao().insertRooms(rooms)
+        Log.d("CHAT_VIEW_MODEL", RoomsDatabase(getApplication()).roomDao().getAllRooms().toString())
+
     }
 
 

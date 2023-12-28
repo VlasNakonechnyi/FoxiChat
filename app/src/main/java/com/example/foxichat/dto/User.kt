@@ -1,10 +1,20 @@
 package com.example.foxichat.dto
 
-data class User (
+import com.google.gson.annotations.SerializedName
 
+data class User (
+    @SerializedName("email")
     val email: String,
-    val display_name: String,
-    val phone_number: String,
+
+    @SerializedName("display_name")
+    val displayName: String,
+
+    @SerializedName("phone_number")
+    val phoneNumber: String,
+
+    @SerializedName("password")
     val password: String,
-    val photo_url: String
+
+    @SerializedName("photo_url")
+    val photoUrl: String
 )
