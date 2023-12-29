@@ -7,6 +7,7 @@ import com.google.gson.annotations.SerializedName
 
 @Entity
 data class Room (
+    @PrimaryKey
     @ColumnInfo(name = "id")
     @SerializedName("id")
     val id: String,
@@ -22,8 +23,4 @@ data class Room (
     @ColumnInfo(name = "timestamp")
     @SerializedName("timestamp")
     val timeStamp: String
-) {
-    @PrimaryKey(autoGenerate = true)
-    var uuid: Int = 0
-
-}
+)

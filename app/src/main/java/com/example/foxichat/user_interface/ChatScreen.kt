@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -32,6 +33,7 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.KeyboardArrowLeft
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.Button
@@ -43,6 +45,7 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -50,18 +53,21 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -75,25 +81,25 @@ import com.example.foxichat.R
 import com.example.foxichat.api.ApiFactory
 import com.example.foxichat.api.RetrofitClient
 import com.example.foxichat.dto.Message
-import com.example.foxichat.dto.User
+import com.example.foxichat.dto.Room
 import com.example.foxichat.navigation.Screen
 import com.example.foxichat.view_model.ChatViewModel
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.ktx.messaging
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.time.LocalDate
-import java.time.LocalTime
 
 class Screens(
     private val nav: NavHostController,
-    private val viewModel: ChatViewModel
+    private val viewModel: ChatViewModel,
+    val snackbarHostState: SnackbarHostState,
+    val scope: CoroutineScope
 ) {
-
 
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -145,8 +151,9 @@ class Screens(
                 state = LazyListState()
 
             ) {
+                items(viewModel.roomsList) {
 
-
+                }
             }
 
 
@@ -222,9 +229,10 @@ class Screens(
         val title = stringResource(id = R.string.sign_up_to_foxify)
 
         val colors = listOf(
-            Color(138, 43, 226),
-            Color(139, 0, 139),
-            Color(75, 0, 130),
+            MaterialTheme.colorScheme.onPrimary,
+            MaterialTheme.colorScheme.secondary,
+            MaterialTheme.colorScheme.tertiary,
+            MaterialTheme.colorScheme.surface,
         )
 
         Box(
@@ -254,7 +262,7 @@ class Screens(
                     //Spacer(modifier = Modifier.height(20.dp))
                     Text(
                         text = title,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.ExtraBold
                     )
@@ -270,8 +278,7 @@ class Screens(
     @Composable
     fun SignUpCol(scope: CoroutineScope, snackbarHostState: SnackbarHostState) {
         val colors = listOf(
-            Color(0, 0, 0),
-            Color(0, 0, 0),
+            MaterialTheme.colorScheme.background
         )
 
         var emailValue by remember { mutableStateOf(TextFieldValue("")) }
@@ -291,10 +298,10 @@ class Screens(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    brush = Brush.linearGradient(colors),
-                    shape = RoundedCornerShape(30.dp),
-                    alpha = 0.5f
-                )
+                    color = MaterialTheme.colorScheme.background,
+                    shape = RoundedCornerShape(5),
+
+                    )
                 .verticalScroll(enabled = true, state = ScrollState(0))
 
         ) {
@@ -309,8 +316,8 @@ class Screens(
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.White,
-                    focusedIndicatorColor = Color.White
+                    unfocusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                    focusedIndicatorColor = MaterialTheme.colorScheme.primary
                 ),
                 onValueChange = {
                     emailValue = it
@@ -353,8 +360,8 @@ class Screens(
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.White,
-                    focusedIndicatorColor = Color.White
+                    unfocusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                    focusedIndicatorColor = MaterialTheme.colorScheme.primary
                 ),
                 onValueChange = {
                     usernameValue = it
@@ -385,8 +392,8 @@ class Screens(
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.White,
-                    focusedIndicatorColor = Color.White
+                    unfocusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                    focusedIndicatorColor = MaterialTheme.colorScheme.primary
                 ),
                 onValueChange = {
                     phoneNumberValue = it
@@ -438,8 +445,8 @@ class Screens(
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.White,
-                    focusedIndicatorColor = Color.White
+                    unfocusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                    focusedIndicatorColor = MaterialTheme.colorScheme.primary
                 ),
                 supportingText = {
                     if (!isPasswordValid) {
@@ -521,8 +528,7 @@ class Screens(
     @Composable
     fun SignInCol() {
         val colors = listOf(
-            Color(0, 0, 0),
-            Color(0, 0, 0),
+            MaterialTheme.colorScheme.background
         )
 
         var emailValue by remember { mutableStateOf(TextFieldValue("")) }
@@ -535,9 +541,8 @@ class Screens(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    brush = Brush.linearGradient(colors),
-                    shape = RoundedCornerShape(30.dp),
-                    alpha = 0.5f
+                    color = MaterialTheme.colorScheme.background,
+                    shape = RoundedCornerShape(5)
                 )
                 .verticalScroll(enabled = true, state = ScrollState(0))
 
@@ -553,8 +558,8 @@ class Screens(
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.White,
-                    focusedIndicatorColor = Color.White
+                    unfocusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                    focusedIndicatorColor = MaterialTheme.colorScheme.primary
                 ),
                 onValueChange = {
                     emailValue = it
@@ -594,8 +599,8 @@ class Screens(
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.White,
-                    focusedIndicatorColor = Color.White
+                    unfocusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                    focusedIndicatorColor = MaterialTheme.colorScheme.primary
                 ),
 
                 visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -663,11 +668,10 @@ class Screens(
         val title = stringResource(id = R.string.welcome_text)
 
         val colors = listOf(
-            Color(138, 43, 226),
-            Color(139, 0, 139),
-            Color(139, 0, 139),
-            Color(75, 0, 130),
-            Color(25, 25, 112),
+            MaterialTheme.colorScheme.onPrimary,
+            MaterialTheme.colorScheme.secondary,
+            MaterialTheme.colorScheme.tertiary,
+            MaterialTheme.colorScheme.surface,
         )
 
         Box(
@@ -697,7 +701,7 @@ class Screens(
                     //Spacer(modifier = Modifier.height(20.dp))
                     Text(
                         text = title,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.ExtraBold
                     )
@@ -709,68 +713,79 @@ class Screens(
         }
     }
 
+    //******************************************** HOMESCREEN *********************************************
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun HomeScreen() {
-        val colors = listOf(
-            Color(138, 43, 226),
-            Color(139, 0, 139),
-            Color(139, 0, 139),
-            Color(75, 0, 130),
-            Color(25, 25, 112),
-        )
+        var isVisible by remember {
+            mutableStateOf(false)
+        }
+        val sheetState = rememberModalBottomSheetState()
+        val scope = rememberCoroutineScope()
+        var showBottomSheet by remember { mutableStateOf(false) }
+        var openAlertDialog by remember { mutableStateOf(false) }
+
         Scaffold(modifier = Modifier.fillMaxSize(),
             floatingActionButton = {
                 FloatingActionButton(
-                    onClick = { viewModel.getAllRooms() },
+                    onClick = {
+                        viewModel.getAllRooms()
+                        showBottomSheet = true
+
+                              },
                     shape = CircleShape,
                     containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
                     elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
                 ) {
                     Icon(Icons.Outlined.Add, "Localized description")
                 }
+
             },
             topBar = {
-            CenterAlignedTopAppBar(
-                modifier = Modifier
-                    .background(Color(72, 61, 139))
-                    .alpha(0.5f),
-                title = {
-                    Text(
-                        "Chats",
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        nav.navigate(Screen.SIGNIN.name)
-                        viewModel.signOut()
-                    }) {
-                        Icon(
-                            Icons.Outlined.KeyboardArrowLeft,
-                            contentDescription = ""
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { /*TODO*/ }) {
-                        Icon(
-                            Icons.Outlined.AccountCircle,
-                            contentDescription = ""
-                        )
-                    }
-                }
+                CenterAlignedTopAppBar(
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        navigationIconContentColor = MaterialTheme.colorScheme.secondary,
+                        titleContentColor = MaterialTheme.colorScheme.secondary,
+                        actionIconContentColor = MaterialTheme.colorScheme.secondary,
+                    ),
 
-            )
-        },
+                    title = {
+                        Text(
+                            "Chats",
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            nav.navigate(Screen.SIGNIN.name)
+                            viewModel.signOut()
+                        }) {
+                            Icon(
+                                Icons.Outlined.KeyboardArrowLeft,
+                                contentDescription = ""
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { /*TODO*/ }) {
+                            Icon(
+                                Icons.Outlined.AccountCircle,
+                                contentDescription = ""
+                            )
+                        }
+                    }
+
+                )
+            },
             bottomBar = {
                 BottomAppBar(
                     modifier = Modifier
                         .padding(10.dp)
                         .clip(RoundedCornerShape(30.dp))
                         .height(50.dp),
-                    containerColor = Color(72, 61, 139)
+                    containerColor = MaterialTheme.colorScheme.primary
                 ) {
-                    Row (
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceAround
@@ -780,7 +795,7 @@ class Screens(
                                 Icons.Outlined.Person,
                                 contentDescription = "",
 
-                            )
+                                )
                         }
                         IconButton(onClick = { /* do something */ }) {
                             Icon(
@@ -791,75 +806,195 @@ class Screens(
                         IconButton(onClick = { /* do something */ }) {
                             Image(
                                 painter = painterResource(id = R.drawable.spoti_logo),
-                                contentDescription = "")
+                                contentDescription = ""
+                            )
                         }
                     }
 
                 }
             }
         ) {
-
             LazyColumn(
-                modifier = Modifier.padding(it)
+
             ) {
 
             }
-        }
+            when {
+                openAlertDialog -> {
+                    CreateRoomAlertDialog(
+                        onDismissRequest = {
+                            openAlertDialog = false
+                            showBottomSheet = false
+                                           },
+                        onConfirmation = {
 
+                            viewModel.createNewRoom(nav, snackbarHostState, scope, "new room")
+                            openAlertDialog = false
+                            showBottomSheet = false
 
-        @Composable
-        fun UserInList(user: User) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .size(70.dp)
-                    .shadow(0.5.dp)
-                    .clickable(onClick = {
-
-                        nav.navigate(Screen.CHAT_SCREEN.name)
-                    }),
-                contentAlignment = Alignment.CenterStart
-
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(all = 10.dp)
-
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                            .padding(end = 10.dp)
+                        },
+                        dialogTitle = "Create new room",
+                        icon = Icons.Outlined.Add
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.CenterVertically)
+                }
+            }
+
+
+            if (showBottomSheet) {
+                ModalBottomSheet(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(it),
+                    onDismissRequest = {
+                        showBottomSheet = false
+                    },
+                    sheetState = sheetState
+                ) {
+                    // Sheet content
+                    Column(
+                        modifier = Modifier.fillMaxSize()
                     ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceAround
+                        ) {
+                            TextButton(onClick = {
+                                scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                    if (!sheetState.isVisible) {
+                                        showBottomSheet = false
+                                    }
+                                }
+                            }
+                            ) {
+                                Text(text = "Cancel")
+                            }
+                            Button(onClick = {
+                                openAlertDialog = true
+                               
+                            }) {
+                                Text(text = "Create new room")
+                            }
 
+                        }
+
+                        LazyColumn(
+                            modifier = Modifier.padding(it)
+                        ) {
+                            items(items = viewModel.roomsList) {
+                                RoomInList(room = it)
+                            }
+                        }
                     }
-
 
                 }
             }
         }
+
     }
 
+    @Composable
+    fun RoomInList(room: Room) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .size(70.dp)
+                .shadow(0.5.dp)
+                .clickable(onClick = {
+
+                    nav.navigate(Screen.CHAT_SCREEN.name)
+                }),
+            contentAlignment = Alignment.CenterStart
+
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(all = 10.dp)
+
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                        .padding(end = 10.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.CenterVertically)
+                ) {
+
+                }
+
+
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+//    @Composable
+//    fun CreateNewRoom(isVisible: Boolean) {
+//
+//        Scaffold(
+//            floatingActionButton = {
+//
+//            }
+//        ) { contentPadding ->
+//
+//        }
+//    }
+    
+    @Composable
+    fun CreateRoomAlertDialog(
+        onDismissRequest: () -> Unit,
+        onConfirmation: () -> Unit,
+        dialogTitle: String,
+        icon: ImageVector,
+    ) {
+        AlertDialog(
+            icon = {
+                Icon(icon, contentDescription = "Example Icon")
+            },
+            title = {
+                Text(text = dialogTitle)
+            },
+            text = {
+                Column {
+                    
+                }
+            },
+            onDismissRequest = {
+                onDismissRequest()
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onConfirmation()
+                    }
+                ) {
+                    Text("Confirm")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        onDismissRequest()
+                    }
+                ) {
+                    Text("Dismiss")
+                }
+            }
+        )
+    }
     companion object {
 
         private const val TAG = "CHAT_SCREEN"
     }
 
-    fun timeToDbFormat(): String {
-
-        return "${LocalDate.now()}T${LocalTime.now().toString().substringBefore(".") + "Z"}"
-    }
 
     @Composable
     fun TestNotificationScreen() {
@@ -882,10 +1017,8 @@ class Screens(
 
                     val body = mapOf(
                         "id" to "000000000000000000000000",
-                        "userId" to viewModel.auth.currentUser?.uid!!,
-                        "deviceId" to token,
-                        "timestamp" to timeToDbFormat()
-                    )
+
+                        )
                     if (token != null) {
                         apiService.postRequest(body).enqueue(object : Callback<ResponseBody> {
                             override fun onResponse(

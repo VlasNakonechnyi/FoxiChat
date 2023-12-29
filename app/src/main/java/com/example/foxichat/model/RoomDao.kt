@@ -17,5 +17,8 @@ interface RoomDao {
     @Query("SELECT * FROM room WHERE id = :roomId")
     suspend fun getRoom(roomId: String): Room
 
+    @Query("DELETE FROM room")
+    suspend fun deleteAllRooms()
+
 
 }

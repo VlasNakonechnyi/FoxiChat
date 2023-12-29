@@ -16,6 +16,8 @@ import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.time.LocalDate
+import java.time.LocalTime
 
 class RemoteRepository {
     val TAG = "REMOTE_REPO"
@@ -45,6 +47,44 @@ class RemoteRepository {
             }
         })
        // Log.d("RESPONSE_BODY", response.toString())
+    }
+    fun createNewRoom(
+        nav: NavHostController,
+        hostState: SnackbarHostState,
+        scope: CoroutineScope,
+        name: String,
+        creatorId: String,
+    ) {
+        val room = Room(
+            id = "000000000000000000000000",
+            name = name,
+            users = listOf(creatorId),
+            timeStamp = timeToDbFormat()
+        )
+        api.createRoom(room).enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                if (response.isSuccessful) {
+                    scope.launch {
+                        hostState.showSnackbar(
+                            message = "Room created successfully",
+                        )
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                scope.launch {
+                    hostState.showSnackbar(
+                        message = "Something went wrong",
+                    )
+                }
+            }
+
+        })
+    }
+    fun timeToDbFormat(): String {
+
+        return "${LocalDate.now()}T${LocalTime.now().toString().substringBefore(".") + "Z"}"
     }
 
 

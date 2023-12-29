@@ -6,7 +6,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.foxichat.dto.Room
 
-@Database(entities = [Room::class], version = 1)
+@Database(entities = [Room::class], version = 2)
 
 @TypeConverters(com.example.foxichat.service.Converters::class)
 abstract class RoomsDatabase: RoomDatabase() {
@@ -26,7 +26,7 @@ abstract class RoomsDatabase: RoomDatabase() {
             context.applicationContext,
             RoomsDatabase::class.java,
             DB_NAME
-        ).build()
+        ).fallbackToDestructiveMigration().build()
     }
 
 }

@@ -1,5 +1,6 @@
 package com.example.foxichat.service
 
+import android.util.Log
 import androidx.room.Room
 import androidx.room.TypeConverter
 import com.google.gson.Gson
@@ -9,8 +10,12 @@ import java.lang.reflect.Type
 class Converters {
     @TypeConverter
     fun fromString(value: String?): List<String> {
-        val listType: Type = object : TypeToken<List<Room>?>() {}.type
-        return Gson().fromJson(value, listType)
+        val gson = Gson()
+        val listType: Type = object : TypeToken<List<String>?>() {}.type
+
+        println(value)
+
+        return gson.fromJson(value, listType)
     }
 
     @TypeConverter

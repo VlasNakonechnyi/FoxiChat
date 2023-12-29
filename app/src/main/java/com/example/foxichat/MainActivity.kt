@@ -1,6 +1,5 @@
 package com.example.foxichat
 
-import android.app.Application
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -98,7 +97,7 @@ class MainActivity : ComponentActivity() {
             }
         ) {
 
-            val screens = Screens(navController, viewModel)
+            val screens = Screens(navController, viewModel, snackbarHostState ,scope)
             composable(Screen.HOME.name) {
                 screens.HomeScreen()
             }

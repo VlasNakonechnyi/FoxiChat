@@ -17,4 +17,7 @@ interface ApiFactory {
 
     @GET("/rooms/get-all-rooms")
     fun getAllRooms(): Call<ResponseBody>
+
+    @POST("/rooms/create-room")
+    fun createRoom(@Body body: Room): Call<ResponseBody>
 }
