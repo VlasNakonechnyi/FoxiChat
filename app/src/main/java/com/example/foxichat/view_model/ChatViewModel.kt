@@ -7,7 +7,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavHostController
 import com.example.foxichat.dto.Room
 import com.example.foxichat.dto.User
@@ -18,7 +17,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import okhttp3.ResponseBody
@@ -33,6 +31,7 @@ class ChatViewModel(val auth: FirebaseAuth, application: Application) :
     private val remoteRepository = RemoteRepository()
 
     var roomsList = mutableStateListOf<Room>()
+    var userRoomList = mutableStateListOf<Room>()
 
 
     // *********************** INPUT VALIDATION *******************************
@@ -88,7 +87,7 @@ class ChatViewModel(val auth: FirebaseAuth, application: Application) :
     ) {
         println("CREATE NEW ROOM WORKED")
         CoroutineScope(Dispatchers.IO).launch {
-            remoteRepository.createNewRoom(nav, hostState, scope, name, creatorId = auth.uid.toString())
+            remoteRepository.createNewRoom(nav, hostState, scope, name, creatorId = "sds")
         }
 
     }
@@ -117,27 +116,45 @@ class ChatViewModel(val auth: FirebaseAuth, application: Application) :
 
     private fun loadAllRooms() {
         CoroutineScope(Dispatchers.IO).launch {
-            var gson = Gson()
+            val gson = Gson()
             remoteRepository.api.getAllRooms().enqueue(object : Callback<ResponseBody> {
                 override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                     response.body()?.string()?.let {
                         val rooms = gson.fromJson(it, Array<Room>::class.java).asList()
                         Log.d("", rooms.toString())
-
-                        CoroutineScope(Dispatchers.IO).launch {
+                        CoroutineScope(Dispatchers.IO).launch{
                             insertRoomsToLocalDb(rooms)
-                            val res = async { getRoomsFromLocalDb() }
-                            roomsList = res.await()
                         }
                     }
                 }
                 override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        val res = async { getRoomsFromLocalDb() }
-                        roomsList = res.await()
-                    }
+                    // TODO
                 }
             })
+            val res = async { getRoomsFromLocalDb() }
+            roomsList = res.await()
+        }
+
+    }
+    fun loadUserRooms() {
+        CoroutineScope(Dispatchers.IO).launch {
+            val gson = Gson()
+            remoteRepository.api.getUserRooms(auth.uid.toString()).enqueue(object : Callback<ResponseBody> {
+                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                    response.body()?.string()?.let {
+                        val rooms = gson.fromJson(it, Array<Room>::class.java).asList()
+                        Log.d("", rooms.toString())
+                        CoroutineScope(Dispatchers.IO).launch{
+                            insertRoomsToLocalDb(rooms)
+                        }
+                    }
+                }
+                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                    // TODO
+                }
+            })
+            val res = async { getRoomsFromLocalDb() }
+            roomsList = res.await()
         }
 
     }
@@ -149,13 +166,13 @@ class ChatViewModel(val auth: FirebaseAuth, application: Application) :
     }
 
     private suspend fun insertRoomsToLocalDb(rooms: List<Room>) {
-       // RoomsDatabase(getApplication()).roomDao().deleteAllRooms()
+        //RoomsDatabase(getApplication()).roomDao().deleteAllRooms()
         Log.d("CHAT_VIEW_MODEL", rooms.toString())
         RoomsDatabase(getApplication()).roomDao().insertRooms(rooms)
     }
 
     private suspend fun getRoomsFromLocalDb(): SnapshotStateList<Room> {
-      //  RoomsDatabase(getApplication()).roomDao().deleteAllRooms()
+      //RoomsDatabase(getApplication()).roomDao().deleteAllRooms()
         Log.d("FROM LOCAL DB", RoomsDatabase(getApplication()).roomDao().getAllRooms().toString())
         return RoomsDatabase(getApplication()).roomDao().getAllRooms().toMutableStateList()
     }

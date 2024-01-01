@@ -713,7 +713,7 @@ class Screens(
         }
     }
 
-    //******************************************** HOMESCREEN *********************************************
+    //******************************************** HOME SCREEN *********************************************
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun HomeScreen() {
@@ -724,7 +724,7 @@ class Screens(
         val scope = rememberCoroutineScope()
         var showBottomSheet by remember { mutableStateOf(false) }
         var openAlertDialog by remember { mutableStateOf(false) }
-
+        viewModel.loadUserRooms()
         Scaffold(modifier = Modifier.fillMaxSize(),
             floatingActionButton = {
                 FloatingActionButton(
@@ -813,11 +813,13 @@ class Screens(
 
                 }
             }
-        ) {
+        ) { it ->
             LazyColumn(
 
             ) {
-
+                items(viewModel.roomsList) {
+                    RoomInList(room = it)
+                }
             }
             when {
                 openAlertDialog -> {
@@ -826,9 +828,9 @@ class Screens(
                             openAlertDialog = false
                             showBottomSheet = false
                                            },
-                        onConfirmation = {
+                        onConfirmation = {name ->
 
-                            viewModel.createNewRoom(nav, snackbarHostState, scope, "new room")
+                            viewModel.createNewRoom(nav, snackbarHostState, scope, name = name)
                             openAlertDialog = false
                             showBottomSheet = false
 
@@ -919,15 +921,30 @@ class Screens(
                         .size(40.dp)
                         .clip(CircleShape)
                         .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                        .padding(end = 10.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.CenterVertically)
-                ) {
 
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceAround
+                ) {
+                    Text(
+                        text = room.name,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Button(
+                        onClick = { /*TODO*/ },
+                        shape = RoundedCornerShape(50),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
+                        
+                        ) {
+                        Text(text = "Join")
+                    }
                 }
 
 
@@ -951,10 +968,13 @@ class Screens(
     @Composable
     fun CreateRoomAlertDialog(
         onDismissRequest: () -> Unit,
-        onConfirmation: () -> Unit,
+        onConfirmation: (name: String) -> Unit,
         dialogTitle: String,
         icon: ImageVector,
     ) {
+        var roomNameTextFieldValue by remember {
+            mutableStateOf(TextFieldValue(""))
+        }
         AlertDialog(
             icon = {
                 Icon(icon, contentDescription = "Example Icon")
@@ -964,7 +984,38 @@ class Screens(
             },
             text = {
                 Column {
-                    
+                    TextField(
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(all = 20.dp),
+                        value = roomNameTextFieldValue,
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            unfocusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                            focusedIndicatorColor = MaterialTheme.colorScheme.primary
+                        ),
+                        onValueChange = {
+                            roomNameTextFieldValue = it
+                        },
+                        placeholder = {
+                            Text(text = "Name")
+                        },
+
+                        trailingIcon = {
+                            IconButton(
+                                onClick = {
+                                    roomNameTextFieldValue = TextFieldValue("")
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Clear,
+                                    contentDescription = "clear text",
+                                )
+                            }
+                        }
+                    )
                 }
             },
             onDismissRequest = {
@@ -973,7 +1024,7 @@ class Screens(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        onConfirmation()
+                        onConfirmation(roomNameTextFieldValue.text.trim())
                     }
                 ) {
                     Text("Confirm")
