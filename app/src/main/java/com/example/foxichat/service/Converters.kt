@@ -13,7 +13,6 @@ class Converters {
         val gson = Gson()
         val listType: Type = object : TypeToken<List<String>?>() {}.type
 
-        println(value)
 
         return gson.fromJson(value, listType)
     }

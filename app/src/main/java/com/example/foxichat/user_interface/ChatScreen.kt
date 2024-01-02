@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Send
@@ -93,6 +94,12 @@ import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.async
 
 class Screens(
     private val nav: NavHostController,
@@ -151,9 +158,9 @@ class Screens(
                 state = LazyListState()
 
             ) {
-                items(viewModel.roomsList) {
-
-                }
+//                items() {
+//
+//                }
             }
 
 
@@ -714,7 +721,8 @@ class Screens(
     }
 
     //******************************************** HOME SCREEN *********************************************
-    @OptIn(ExperimentalMaterial3Api::class)
+
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
     @Composable
     fun HomeScreen() {
         var isVisible by remember {
@@ -724,8 +732,23 @@ class Screens(
         val scope = rememberCoroutineScope()
         var showBottomSheet by remember { mutableStateOf(false) }
         var openAlertDialog by remember { mutableStateOf(false) }
+        val refreshScope = rememberCoroutineScope()
+        var refreshing by remember { mutableStateOf(false) }
+        val userRoomsList by viewModel.userRoomList.observeAsState()
+        val allRoomsList by viewModel.roomsList.observeAsState()
+
+
+        fun refresh() = refreshScope.launch {
+            refreshing = true
+            val res = async { viewModel.loadUserRooms() }
+            res.await()
+            refreshing = false
+        }
+        val state = rememberPullRefreshState(refreshing, ::refresh)
         viewModel.loadUserRooms()
-        Scaffold(modifier = Modifier.fillMaxSize(),
+        Scaffold(modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(state),
             floatingActionButton = {
                 FloatingActionButton(
                     onClick = {
@@ -814,13 +837,24 @@ class Screens(
                 }
             }
         ) { it ->
-            LazyColumn(
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(it)
+
 
             ) {
-                items(viewModel.roomsList) {
-                    RoomInList(room = it)
+                LazyColumn {
+                    if (userRoomsList!= null) {
+                        items(userRoomsList!!) {
+                            RoomInUserRoomsList(room = it)
+                        }
+                    }
+
                 }
+                PullRefreshIndicator(refreshing, state, Modifier.align(Alignment.TopCenter))
             }
+
             when {
                 openAlertDialog -> {
                     CreateRoomAlertDialog(
@@ -833,6 +867,7 @@ class Screens(
                             viewModel.createNewRoom(nav, snackbarHostState, scope, name = name)
                             openAlertDialog = false
                             showBottomSheet = false
+                            viewModel.loadUserRooms()
 
                         },
                         dialogTitle = "Create new room",
@@ -882,9 +917,12 @@ class Screens(
                         LazyColumn(
                             modifier = Modifier.padding(it)
                         ) {
-                            items(items = viewModel.roomsList) {
-                                RoomInList(room = it)
+                            if (allRoomsList != null) {
+                                items(items = allRoomsList!!) {
+                                    RoomInJoinRoomList(room = it)
+                                }
                             }
+
                         }
                     }
 
@@ -893,9 +931,66 @@ class Screens(
         }
 
     }
+    @Composable
+    fun RoomInUserRoomsList(room: Room) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .size(100.dp)
+                .shadow(0.5.dp)
+                .clickable(onClick = {
+
+                    nav.navigate(Screen.CHAT_SCREEN.name)
+                }),
+            contentAlignment = Alignment.CenterStart
+
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(all = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(CircleShape)
+
+
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceAround
+                ) {
+                    Text(
+                        text = room.name,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 16.sp
+                    )
+                    Box {
+                        Text(
+                            text = "Today, 14:00",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+
+                }
+
+
+            }
+        }
+    }
+
 
     @Composable
-    fun RoomInList(room: Room) {
+    fun RoomInJoinRoomList(room: Room) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -934,16 +1029,23 @@ class Screens(
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary,
                     )
-                    Button(
-                        onClick = { /*TODO*/ },
-                        shape = RoundedCornerShape(50),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            contentColor = MaterialTheme.colorScheme.primary
-                        )
-                        
+                    if (room.users.contains(viewModel.auth.uid.toString())) {
+                        Text(
+                            text = "You are in this room",
+                            color = MaterialTheme.colorScheme.primary
+                            )
+                    } else {
+                        Button(
+                            onClick = { /*TODO*/ },
+                            shape = RoundedCornerShape(50),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                contentColor = MaterialTheme.colorScheme.primary
+                            )
+
                         ) {
-                        Text(text = "Join")
+                            Text(text = "Join")
+                        }
                     }
                 }
 

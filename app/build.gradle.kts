@@ -110,4 +110,9 @@ dependencies {
     annotationProcessor("androidx.room:room-compiler:$room_version")
     // To use Kotlin Symbol Processing (KSP)
     ksp("androidx.room:room-compiler:$room_version")
+    // ViewModel utilities for Compose
+    val lifecycle_version = "2.6.2"
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version")
+    implementation("androidx.compose.material:material:1.5.4")
+    implementation ("androidx.compose.runtime:runtime-livedata:1.5.4")
 }
