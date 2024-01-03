@@ -1,11 +1,17 @@
 package com.example.foxichat.dto
 
+import com.google.gson.annotations.SerializedName
+
 data class Message(
-    var imageUrl: String? = null,
-    val author: String,
+    @SerializedName("author_id")
+    val authorId: String,
+    @SerializedName("author_name")
+    val authorName: String,
+    @SerializedName("room_id")
+    val roomId: String,
+
+    @SerializedName("body")
     val body: String,
-    var isFromMe: Boolean = false,
-    val visibleTo: MutableList<User> = mutableListOf()
-) {
-    constructor() : this(null, "User", "Some message")
-}
+    @SerializedName("timestamp")
+    val timeStamp: String,
+)

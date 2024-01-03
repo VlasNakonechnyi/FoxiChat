@@ -5,12 +5,15 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.navigation.NavHostController
 import com.example.foxichat.api.ApiFactory
 import com.example.foxichat.api.RetrofitClient
+import com.example.foxichat.dto.Message
 import com.example.foxichat.dto.Room
 import com.example.foxichat.dto.User
 import com.example.foxichat.navigation.Screen
 import com.example.foxichat.service.Converters
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -87,6 +90,52 @@ class RemoteRepository {
         return "${LocalDate.now()}T${LocalTime.now().toString().substringBefore(".") + "Z"}"
     }
 
+    fun addUserToRoom(
+                      hostState: SnackbarHostState,
+                      roomId: String,
+                      uid: String) {
+        api.joinRoom(mapOf(
+            "room_id" to roomId,
+            "uid" to uid
+        )).enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                CoroutineScope(Dispatchers.Main).launch {
+                    hostState.showSnackbar(
+                        message = "Joined"
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                CoroutineScope(Dispatchers.Main).launch {
+                    hostState.showSnackbar(
+                        message = "Something went wrong"
+                    )
+                }
+            }
+
+        })
+    }
+
+    fun sendMessage(message: Message?) {
+
+        if (message != null) {
+            api.sendMessage(message).enqueue(object : Callback<ResponseBody>{
+                override fun onResponse(
+                    call: Call<ResponseBody>,
+                    response: Response<ResponseBody>
+                ) {
+                    Log.d(TAG, "MESSAGE_SENT")
+                }
+
+                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                    Log.d(TAG, "MESSAGE_NOT_SENT")
+                }
+
+            })
+        }
+
+    }
 
 
 }

@@ -87,17 +87,17 @@ class MainActivity : ComponentActivity() {
         val navController = rememberNavController()
         NavHost(
             navController = navController,
-            startDestination = if (auth.currentUser == null) Screen.SIGNIN.name else Screen.HOME.name,
+            startDestination = viewModel.authUserNotNullDestination(),
             enterTransition = {
                 fadeIn(
                     animationSpec = tween(
-                        1000, easing = LinearEasing
+                        300, easing = LinearEasing
                     )
                 )
             }
         ) {
 
-            val screens = Screens(navController, viewModel, snackbarHostState ,scope)
+            val screens = Screens(navController, viewModel, snackbarHostState )
             composable(Screen.HOME.name) {
                 screens.HomeScreen()
             }
@@ -117,8 +117,9 @@ class MainActivity : ComponentActivity() {
             composable(Screen.SIGNIN.name) {
                 screens.SignInScreen()
             }
-            composable(Screen.CHAT_SCREEN.name) {
-                screens.ChatScreen()
+            composable(Screen.CHAT_SCREEN.name + "/{chat_id}") {
+                val chatId = it.arguments?.getString("chat_id")
+                screens.ChatScreen(chatId)
             }
             composable(Screen.TEST_SCREEN.name) {
                 screens.TestNotificationScreen()

@@ -1,8 +1,6 @@
 package com.example.foxichat.user_interface
 
 import android.util.Log
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
@@ -33,6 +31,7 @@ import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.KeyboardArrowLeft
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
@@ -104,18 +103,52 @@ import kotlinx.coroutines.async
 class Screens(
     private val nav: NavHostController,
     private val viewModel: ChatViewModel,
-    val snackbarHostState: SnackbarHostState,
-    val scope: CoroutineScope
+    private val snackbarHostState: SnackbarHostState,
 ) {
+
 
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun ChatScreen() {
+    fun ChatScreen(chatId: String?) {
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
+            topBar = {
+                CenterAlignedTopAppBar(
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        navigationIconContentColor = MaterialTheme.colorScheme.secondary,
+                        titleContentColor = MaterialTheme.colorScheme.secondary,
+                        actionIconContentColor = MaterialTheme.colorScheme.secondary,
+                    ),
 
+                    title = {
+                        Text(
+                            "Room",
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            nav.navigate(Screen.HOME.name)
+                        }) {
+                            Icon(
+                                Icons.Outlined.KeyboardArrowLeft,
+                                contentDescription = ""
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { /*TODO*/ }) {
+                            Icon(
+                                Icons.Outlined.MoreVert,
+                                contentDescription = ""
+                            )
+                        }
+                    }
+
+                )
+            },
             bottomBar = {
                 Box(
                     modifier = Modifier
@@ -126,6 +159,14 @@ class Screens(
                     Row {
                         TextField(
                             shape = RoundedCornerShape(50.dp),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                focusedTextColor = MaterialTheme.colorScheme.primary,
+                                cursorColor = MaterialTheme.colorScheme.secondary
+                            ),
                             modifier = Modifier.fillMaxWidth(),
                             value = chatBoxValue,
                             onValueChange = { chatBoxValue = it },
@@ -135,7 +176,10 @@ class Screens(
                             trailingIcon = {
                                 IconButton(
                                     onClick = {
-
+                                        val body = chatBoxValue.text.trim()
+                                        if (body.isNotBlank()) {
+                                            chatId?.let { viewModel.sendMessage(body, it) }
+                                        }
                                     },
                                 ) {
                                     Icon(
@@ -175,12 +219,13 @@ class Screens(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(10.dp)
+
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.Top,
-                horizontalArrangement = if (msg.isFromMe) Arrangement.End else Arrangement.Start
+
             ) {
                 Image(
                     painter = painterResource(id = android.R.drawable.arrow_up_float),
@@ -194,17 +239,12 @@ class Screens(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                var isExpanded by remember {
-                    mutableStateOf(false)
-                }
-                val surfaceColor by animateColorAsState(
-                    if (isExpanded) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.surface, label = ""
-                )
 
-                Column(modifier = Modifier.clickable { isExpanded = !isExpanded }) {
+
+
+                Column {
                     Text(
-                        text = msg.author,
+                        text = "msg.author",
                         color = MaterialTheme.colorScheme.secondary,
                         style = MaterialTheme.typography.titleSmall
                     )
@@ -212,15 +252,13 @@ class Screens(
                     Surface(
                         shape = MaterialTheme.shapes.medium,
                         shadowElevation = 1.dp,
-                        color = surfaceColor,
+                        color = MaterialTheme.colorScheme.primaryContainer,
                         modifier = Modifier
-                            .animateContentSize()
                             .padding(1.dp)
                     ) {
                         Text(
                             text = msg.body,
                             modifier = Modifier.padding(all = 4.dp),
-                            maxLines = if (isExpanded) Int.MAX_VALUE else 1,
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -284,9 +322,6 @@ class Screens(
 
     @Composable
     fun SignUpCol(scope: CoroutineScope, snackbarHostState: SnackbarHostState) {
-        val colors = listOf(
-            MaterialTheme.colorScheme.background
-        )
 
         var emailValue by remember { mutableStateOf(TextFieldValue("")) }
         var isValidEmail by remember { mutableStateOf(true) }
@@ -534,9 +569,6 @@ class Screens(
 
     @Composable
     fun SignInCol() {
-        val colors = listOf(
-            MaterialTheme.colorScheme.background
-        )
 
         var emailValue by remember { mutableStateOf(TextFieldValue("")) }
 
@@ -725,9 +757,6 @@ class Screens(
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
     @Composable
     fun HomeScreen() {
-        var isVisible by remember {
-            mutableStateOf(false)
-        }
         val sheetState = rememberModalBottomSheetState()
         val scope = rememberCoroutineScope()
         var showBottomSheet by remember { mutableStateOf(false) }
@@ -745,7 +774,7 @@ class Screens(
             refreshing = false
         }
         val state = rememberPullRefreshState(refreshing, ::refresh)
-        viewModel.loadUserRooms()
+
         Scaffold(modifier = Modifier
             .fillMaxSize()
             .pullRefresh(state),
@@ -780,8 +809,9 @@ class Screens(
                     },
                     navigationIcon = {
                         IconButton(onClick = {
-                            nav.navigate(Screen.SIGNIN.name)
                             viewModel.signOut()
+                            nav.navigate(Screen.SIGNIN.name)
+
                         }) {
                             Icon(
                                 Icons.Outlined.KeyboardArrowLeft,
@@ -940,7 +970,7 @@ class Screens(
                 .shadow(0.5.dp)
                 .clickable(onClick = {
 
-                    nav.navigate(Screen.CHAT_SCREEN.name)
+                    nav.navigate(Screen.CHAT_SCREEN.name + "/${room.id}")
                 }),
             contentAlignment = Alignment.CenterStart
 
@@ -1036,7 +1066,10 @@ class Screens(
                             )
                     } else {
                         Button(
-                            onClick = { /*TODO*/ },
+                            onClick = {
+                                viewModel.joinRoom(snackbarHostState,room.id)
+                                viewModel.getAllRooms()
+                            },
                             shape = RoundedCornerShape(50),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -1053,20 +1086,6 @@ class Screens(
             }
         }
     }
-
-    @OptIn(ExperimentalMaterial3Api::class)
-//    @Composable
-//    fun CreateNewRoom(isVisible: Boolean) {
-//
-//        Scaffold(
-//            floatingActionButton = {
-//
-//            }
-//        ) { contentPadding ->
-//
-//        }
-//    }
-    
     @Composable
     fun CreateRoomAlertDialog(
         onDismissRequest: () -> Unit,
@@ -1144,11 +1163,8 @@ class Screens(
         )
     }
     companion object {
-
         private const val TAG = "CHAT_SCREEN"
     }
-
-
     @Composable
     fun TestNotificationScreen() {
         Button(onClick = {
@@ -1185,8 +1201,6 @@ class Screens(
                                 //Log.d(TAG, t.message.toString())
                             }
                         })
-                    } else {
-
                     }
                     // Log and toast
 

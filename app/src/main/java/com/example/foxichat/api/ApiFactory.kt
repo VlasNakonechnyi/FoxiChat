@@ -1,5 +1,6 @@
 package com.example.foxichat.api
 
+import com.example.foxichat.dto.Message
 import com.example.foxichat.dto.Room
 import com.example.foxichat.dto.User
 import okhttp3.ResponseBody
@@ -12,6 +13,9 @@ interface ApiFactory {
     @POST("/tokens")
     fun postRequest(@Body body: Map<String, String>): Call<ResponseBody>
 
+    @POST("/messages/send-message")
+    fun sendMessage(@Body body: Message) : Call<ResponseBody>
+
     @POST("/users/create-user")
     fun createUserRequest(@Body body: User): Call<ResponseBody>
 
@@ -22,4 +26,7 @@ interface ApiFactory {
 
     @POST("/rooms/create-room")
     fun createRoom(@Body body: Room): Call<ResponseBody>
+
+    @POST("/rooms/join-room")
+    fun joinRoom(@Body body: Map<String, String>): Call<ResponseBody>
 }
