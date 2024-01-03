@@ -2,7 +2,7 @@ package com.example.foxichat.dto
 
 import com.google.gson.annotations.SerializedName
 
-data class Message(
+data class MessageDto(
     @SerializedName("author_id")
     val authorId: String,
     @SerializedName("author_name")

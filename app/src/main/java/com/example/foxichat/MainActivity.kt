@@ -26,6 +26,7 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.foxichat.navigation.NavigationHost
 import com.example.foxichat.navigation.Screen
 import com.example.foxichat.ui.theme.JetpackComposeExTheme
 import com.example.foxichat.user_interface.Screens
@@ -36,7 +37,7 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CoroutineScope
 
 class MainActivity : ComponentActivity() {
-    lateinit var auth: FirebaseAuth
+    private lateinit var auth: FirebaseAuth
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { isGranted: Boolean ->
@@ -78,54 +79,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @Composable
-    fun NavigationHost(
-        scope: CoroutineScope,
-        snackbarHostState: SnackbarHostState,
-        viewModel: ChatViewModel
-    ) {
-        val navController = rememberNavController()
-        NavHost(
-            navController = navController,
-            startDestination = viewModel.authUserNotNullDestination(),
-            enterTransition = {
-                fadeIn(
-                    animationSpec = tween(
-                        300, easing = LinearEasing
-                    )
-                )
-            }
-        ) {
 
-            val screens = Screens(navController, viewModel, snackbarHostState )
-            composable(Screen.HOME.name) {
-                screens.HomeScreen()
-            }
-            composable(
-                route = Screen.SIGNUP.name,
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(
-                            100, easing = LinearEasing
-                        )
-                    )
-                }
-
-            ) {
-                screens.SignUpScreen(scope, snackbarHostState)
-            }
-            composable(Screen.SIGNIN.name) {
-                screens.SignInScreen()
-            }
-            composable(Screen.CHAT_SCREEN.name + "/{chat_id}") {
-                val chatId = it.arguments?.getString("chat_id")
-                screens.ChatScreen(chatId)
-            }
-            composable(Screen.TEST_SCREEN.name) {
-                screens.TestNotificationScreen()
-            }
-        }
-    }
 
     private fun askNotificationPermission() {
         // This is only necessary for API level >= 33 (TIRAMISU)

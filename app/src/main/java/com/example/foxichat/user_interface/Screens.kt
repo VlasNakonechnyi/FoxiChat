@@ -80,7 +80,7 @@ import androidx.navigation.NavHostController
 import com.example.foxichat.R
 import com.example.foxichat.api.ApiFactory
 import com.example.foxichat.api.RetrofitClient
-import com.example.foxichat.dto.Message
+import com.example.foxichat.dto.MessageDto
 import com.example.foxichat.dto.Room
 import com.example.foxichat.navigation.Screen
 import com.example.foxichat.view_model.ChatViewModel
@@ -214,7 +214,7 @@ class Screens(
     }
 
     @Composable
-    fun MessageCard(msg: Message) {
+    fun MessageCard(msg: MessageDto) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1168,44 +1168,7 @@ class Screens(
     @Composable
     fun TestNotificationScreen() {
         Button(onClick = {
-            Firebase.messaging.token.addOnCanceledListener {
 
-            }
-            Firebase.messaging.token.addOnCompleteListener(
-                OnCompleteListener { task ->
-                    if (!task.isSuccessful) {
-                        Log.w(TAG, "Fetching FCM registration token failed", task.exception)
-                        return@OnCompleteListener
-                    }
-
-                    // Get new FCM registration token
-                    val token = task.result
-                    Log.d(TAG, "Refreshed token: $token")
-                    val retrofit = RetrofitClient.getClient()
-                    val apiService = retrofit.create(ApiFactory::class.java)
-
-                    val body = mapOf(
-                        "id" to "000000000000000000000000",
-
-                        )
-                    if (token != null) {
-                        apiService.postRequest(body).enqueue(object : Callback<ResponseBody> {
-                            override fun onResponse(
-                                call: Call<ResponseBody>,
-                                response: Response<ResponseBody>
-                            ) {
-                                Log.d(TAG, response.body().toString())
-                            }
-
-                            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                                //Log.d(TAG, t.message.toString())
-                            }
-                        })
-                    }
-                    // Log and toast
-
-                },
-            )
         }) {
 
         }

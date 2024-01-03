@@ -1,8 +1,8 @@
 package com.example.foxichat.api
 
-import com.example.foxichat.dto.Message
+import com.example.foxichat.dto.MessageDto
 import com.example.foxichat.dto.Room
-import com.example.foxichat.dto.User
+import com.example.foxichat.dto.UserDto
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.Body
@@ -14,10 +14,10 @@ interface ApiFactory {
     fun postRequest(@Body body: Map<String, String>): Call<ResponseBody>
 
     @POST("/messages/send-message")
-    fun sendMessage(@Body body: Message) : Call<ResponseBody>
+    fun sendMessage(@Body body: MessageDto) : Call<ResponseBody>
 
     @POST("/users/create-user")
-    fun createUserRequest(@Body body: User): Call<ResponseBody>
+    fun createUserRequest(@Body body: UserDto): Call<ResponseBody>
 
     @GET("/rooms/get-all-rooms")
     fun getAllRooms(): Call<ResponseBody>

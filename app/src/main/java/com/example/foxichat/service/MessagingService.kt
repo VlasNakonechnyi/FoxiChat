@@ -38,6 +38,9 @@ class MessagingService : FirebaseMessagingService() {
         // Check if message contains a data payload.
         if (remoteMessage.data.isNotEmpty()) {
             Log.d(TAG, "Message data payload: ${remoteMessage.data}")
+            val displayName = remoteMessage.data["author_name"]
+            val body = remoteMessage.data["body"]
+            val timestamp = remoteMessage.data["timestamp"]
 
             // Check if data needs to be processed by long running job
             if (isLongRunningJob()) {

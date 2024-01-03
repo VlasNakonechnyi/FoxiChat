@@ -5,15 +5,15 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.navigation.NavHostController
 import com.example.foxichat.api.ApiFactory
 import com.example.foxichat.api.RetrofitClient
-import com.example.foxichat.dto.Message
+import com.example.foxichat.dto.MessageDto
 import com.example.foxichat.dto.Room
-import com.example.foxichat.dto.User
+import com.example.foxichat.dto.UserDto
 import com.example.foxichat.navigation.Screen
-import com.example.foxichat.service.Converters
-import com.google.gson.Gson
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.ktx.messaging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -25,16 +25,16 @@ import java.time.LocalTime
 class RemoteRepository {
     val TAG = "REMOTE_REPO"
     private val retrofit = RetrofitClient.getClient()
-    val api = retrofit.create(ApiFactory::class.java)
-    var roomsList: List<Room> = emptyList()
+    val api: ApiFactory = retrofit.create(ApiFactory::class.java)
+
     fun createUser(
         nav: NavHostController,
         scope: CoroutineScope,
         hostState: SnackbarHostState,
-        user: User
+        userDto: UserDto
     ) {
         api.createUserRequest(
-            user
+            userDto
         ).enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 Log.d("RESPONSE_BODY", response.body().toString())
@@ -117,10 +117,10 @@ class RemoteRepository {
         })
     }
 
-    fun sendMessage(message: Message?) {
+    fun sendMessage(messageDto: MessageDto?) {
 
-        if (message != null) {
-            api.sendMessage(message).enqueue(object : Callback<ResponseBody>{
+        if (messageDto != null) {
+            api.sendMessage(messageDto).enqueue(object : Callback<ResponseBody>{
                 override fun onResponse(
                     call: Call<ResponseBody>,
                     response: Response<ResponseBody>
@@ -135,6 +135,48 @@ class RemoteRepository {
             })
         }
 
+    }
+
+    fun sendNotificationToken(uid: String) {
+        Firebase.messaging.token.addOnCanceledListener {
+
+        }
+        Firebase.messaging.token.addOnCompleteListener(
+            OnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    Log.w(TAG, "Fetching FCM registration token failed", task.exception)
+                    return@OnCompleteListener
+                }
+
+                // Get new FCM registration token
+                val token = task.result
+                Log.d(TAG, "Refreshed token: $token")
+                val retrofit = RetrofitClient.getClient()
+                val apiService = retrofit.create(ApiFactory::class.java)
+
+                val body = mapOf(
+                    "userId" to uid,
+                    "deviceId" to token,
+                    "timestamp" to timeToDbFormat()
+                    )
+                if (token != null) {
+                    apiService.postRequest(body).enqueue(object : Callback<ResponseBody> {
+                        override fun onResponse(
+                            call: Call<ResponseBody>,
+                            response: Response<ResponseBody>
+                        ) {
+                            Log.d(TAG, response.body().toString())
+                        }
+
+                        override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                            Log.d(TAG, t.message.toString())
+                        }
+                    })
+                }
+                // Log and toast
+
+            },
+        )
     }
 
 

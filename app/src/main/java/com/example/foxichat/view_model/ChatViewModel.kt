@@ -8,9 +8,9 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavHostController
-import com.example.foxichat.dto.Message
+import com.example.foxichat.dto.MessageDto
 import com.example.foxichat.dto.Room
-import com.example.foxichat.dto.User
+import com.example.foxichat.dto.UserDto
 import com.example.foxichat.model.RemoteRepository
 import com.example.foxichat.model.RoomsDatabase
 import com.example.foxichat.navigation.Screen
@@ -18,9 +18,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
@@ -66,6 +64,7 @@ class ChatViewModel(val auth: FirebaseAuth, application: Application) :
 
     fun authUserNotNullDestination(): String {
         if (auth.currentUser != null) {
+            sendNotificationToken()
             loadUserRooms()
             return Screen.HOME.name
         } else {
@@ -83,7 +82,7 @@ class ChatViewModel(val auth: FirebaseAuth, application: Application) :
         scope: CoroutineScope
     ) {
 
-        val user = User(
+        val userDto = UserDto(
             email,
             username,
             phone,
@@ -91,7 +90,7 @@ class ChatViewModel(val auth: FirebaseAuth, application: Application) :
             "nothing"
         )
         CoroutineScope(Dispatchers.IO).launch {
-            remoteRepository.createUser(nav, scope, hostState, user)
+            remoteRepository.createUser(nav, scope, hostState, userDto)
         }
 
     }
@@ -123,6 +122,7 @@ class ChatViewModel(val auth: FirebaseAuth, application: Application) :
                     val user = auth.currentUser
                     Log.d("USER_SIGNED_IN", user?.uid.toString())
                     nav.navigate(Screen.HOME.name)
+                    sendNotificationToken()
                     loadUserRooms()
                 } else {
                     // If sign in fails, display a message to the user.
@@ -240,8 +240,16 @@ class ChatViewModel(val auth: FirebaseAuth, application: Application) :
     }
 
     fun sendMessage(body: String, chatId: String) {
-        val message = auth.currentUser?.displayName?.let { Message(auth.uid.toString(), it, chatId, body, remoteRepository.timeToDbFormat()) }
-        remoteRepository.sendMessage(message)
+        println(auth.currentUser?.displayName)
+        val messageDto = auth.currentUser?.displayName?.let { MessageDto(auth.uid.toString(), it, chatId, body, remoteRepository.timeToDbFormat()) }
+        remoteRepository.sendMessage(messageDto)
+    }
+
+    private fun sendNotificationToken() {
+        CoroutineScope(Dispatchers.IO).launch {
+            remoteRepository.sendNotificationToken(auth.currentUser?.uid.toString())
+        }
+
     }
 
 
