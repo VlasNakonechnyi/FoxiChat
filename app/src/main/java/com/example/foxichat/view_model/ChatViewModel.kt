@@ -171,6 +171,7 @@ class ChatViewModel(val auth: FirebaseAuth, application: Application) :
                     call: Call<ResponseBody>,
                     response: Response<ResponseBody>
                 ) {
+                    CoroutineScope(Dispatchers.IO).launch{ deleteAllRooms()}
                     response.body()?.string()?.let {
                         val rooms = gson.fromJson(it, Array<Room>::class.java).asList()
                         Log.d("USERS_LOADING_API", rooms.toString())

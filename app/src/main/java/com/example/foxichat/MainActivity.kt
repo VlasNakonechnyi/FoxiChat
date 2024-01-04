@@ -1,5 +1,7 @@
 package com.example.foxichat
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -38,6 +40,9 @@ import kotlinx.coroutines.CoroutineScope
 
 class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
+    companion object {
+        const val FCM_CHANNEL_ID = "FCM_CHANNEL_ID"
+    }
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { isGranted: Boolean ->
@@ -56,6 +61,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val fcmChannel =
+            NotificationChannel(FCM_CHANNEL_ID, "FCM_Channel", NotificationManager.IMPORTANCE_HIGH)
+
+        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+        manager.createNotificationChannel(fcmChannel)
         auth = Firebase.auth
         val viewModel = ChatViewModel(auth, application = application)
 
