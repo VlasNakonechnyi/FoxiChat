@@ -111,7 +111,10 @@ class Screens(
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun ChatScreen(chatId: String?) {
-
+        val messages by viewModel.getMessages().observeAsState()
+        val state = remember {
+            LazyListState(messages?.size?.minus(1) ?: 0)
+        }
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             topBar = {
@@ -199,12 +202,14 @@ class Screens(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
-                state = LazyListState()
+                state = state
 
             ) {
-//                items() {
-//
-//                }
+                if (messages != null) {
+                    items(messages!!) {
+                        MessageCard(msg = it)
+                    }
+                }
             }
 
 
@@ -212,9 +217,100 @@ class Screens(
 
 
     }
+    @Composable
+    fun MyMessage(msg: MessageDto) {
+
+        Column(
+            horizontalAlignment = Alignment.End
+        ) {
+
+            Text(
+                text =  msg.authorName,
+                color = MaterialTheme.colorScheme.secondary,
+                style = MaterialTheme.typography.titleSmall
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Surface(
+                shape = MaterialTheme.shapes.large,
+                shadowElevation = 1.dp,
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier
+                    .padding(1.dp)
+            ) {
+                Text(
+                    text = msg.body,
+                    modifier = Modifier.padding(all = 4.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = 16.sp
+                )
+            }
+            Text(
+                text = msg.timeStamp,
+                modifier = Modifier.padding(all = 4.dp),
+                style = MaterialTheme.typography.titleSmall,
+                fontSize = 12.sp
+            )
+
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        Image(
+            painter = painterResource(id = R.drawable.logotype),
+            contentDescription = null,
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                .padding(end = 10.dp)
+        )
+    }
+    @Composable
+    fun NotMyMessage(msg: MessageDto) {
+        Image(
+            painter = painterResource(id = R.drawable.logotype),
+            contentDescription = null,
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                .padding(end = 10.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Column {
+            Text(
+                text =  msg.authorName,
+                color = MaterialTheme.colorScheme.secondary,
+                style = MaterialTheme.typography.titleSmall
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Surface(
+                shape = MaterialTheme.shapes.large,
+                shadowElevation = 1.dp,
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier
+                    .padding(1.dp)
+            ) {
+                Text(
+                    text = msg.body,
+                    modifier = Modifier.padding(all = 4.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = 16.sp
+                )
+            }
+            Text(
+                text = msg.timeStamp,
+                modifier = Modifier.padding(all = 4.dp),
+                style = MaterialTheme.typography.titleSmall,
+                fontSize = 12.sp
+            )
+        }
+        
+        
+    }
+
 
     @Composable
     fun MessageCard(msg: MessageDto) {
+        val isFromMe = viewModel.isMessageFromMe(msg)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -225,43 +321,13 @@ class Screens(
                 modifier = Modifier
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.Top,
+                horizontalArrangement = if (isFromMe) Arrangement.End else Arrangement.Start
 
             ) {
-                Image(
-                    painter = painterResource(id = android.R.drawable.arrow_up_float),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                        .padding(end = 10.dp)
-                )
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-
-
-
-                Column {
-                    Text(
-                        text = "msg.author",
-                        color = MaterialTheme.colorScheme.secondary,
-                        style = MaterialTheme.typography.titleSmall
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Surface(
-                        shape = MaterialTheme.shapes.medium,
-                        shadowElevation = 1.dp,
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        modifier = Modifier
-                            .padding(1.dp)
-                    ) {
-                        Text(
-                            text = msg.body,
-                            modifier = Modifier.padding(all = 4.dp),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
+                if (isFromMe) {
+                    MyMessage(msg = msg)
+                } else {
+                    NotMyMessage(msg = msg)
                 }
             }
         }
@@ -969,7 +1035,7 @@ class Screens(
                 .size(100.dp)
                 .shadow(0.5.dp)
                 .clickable(onClick = {
-
+                    viewModel.loadMessagesFromRoom(snackbarHostState, room.id)
                     nav.navigate(Screen.CHAT_SCREEN.name + "/${room.id}")
                 }),
             contentAlignment = Alignment.CenterStart

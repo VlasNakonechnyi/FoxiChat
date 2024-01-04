@@ -2,6 +2,7 @@ package com.example.foxichat.model
 
 import android.util.Log
 import androidx.compose.material3.SnackbarHostState
+import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavHostController
 import com.example.foxichat.api.ApiFactory
 import com.example.foxichat.api.RetrofitClient
@@ -12,6 +13,7 @@ import com.example.foxichat.navigation.Screen
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.ktx.messaging
+import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -26,7 +28,9 @@ class RemoteRepository {
     val TAG = "REMOTE_REPO"
     private val retrofit = RetrofitClient.getClient()
     val api: ApiFactory = retrofit.create(ApiFactory::class.java)
-
+    val messages: MutableLiveData<List<MessageDto>> by lazy {
+        MutableLiveData<List<MessageDto>>()
+    }
     fun createUser(
         nav: NavHostController,
         scope: CoroutineScope,
@@ -116,9 +120,37 @@ class RemoteRepository {
 
         })
     }
+    fun getMessagesFromRoom(
+        hostState: SnackbarHostState,
+        roomId: String
+    ) {
+        Log.d(TAG, roomId)
+        val gson = Gson()
+        api.getMessagesFromRoom(roomId).enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+
+                response.body()?.string()?.let {
+                    messages.value =
+                        gson.fromJson(it, Array<MessageDto>::class.java)
+                            .asList()
+                    Log.d(TAG, messages.toString())
+                }
+
+
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                TODO("Not yet implemented")
+            }
+
+        })
+    }
 
     fun sendMessage(messageDto: MessageDto?) {
-
+        val newList = mutableListOf<MessageDto>()
+        messages.value?.let { newList.addAll(it) }
+        messageDto?.let { newList.add(it) }
+        messages.value = newList
         if (messageDto != null) {
             api.sendMessage(messageDto).enqueue(object : Callback<ResponseBody>{
                 override fun onResponse(

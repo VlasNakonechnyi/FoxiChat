@@ -3,11 +3,13 @@ package com.example.foxichat.api
 import com.example.foxichat.dto.MessageDto
 import com.example.foxichat.dto.Room
 import com.example.foxichat.dto.UserDto
+import com.google.android.gms.common.internal.safeparcel.SafeParcelable.Param
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 interface ApiFactory {
     @POST("/tokens")
@@ -15,6 +17,9 @@ interface ApiFactory {
 
     @POST("/messages/send-message")
     fun sendMessage(@Body body: MessageDto) : Call<ResponseBody>
+
+    @GET("/messages/get-messages")
+    fun getMessagesFromRoom(@Query("roomid") string: String): Call<ResponseBody>
 
     @POST("/users/create-user")
     fun createUserRequest(@Body body: UserDto): Call<ResponseBody>

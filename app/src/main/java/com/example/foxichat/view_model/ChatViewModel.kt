@@ -42,6 +42,9 @@ class ChatViewModel(val auth: FirebaseAuth, application: Application) :
 
     // *********************** INPUT VALIDATION *******************************
 
+    fun isMessageFromMe(msg: MessageDto): Boolean {
+        return msg.authorId == auth.uid.toString()
+    }
     fun validatePasswordField(p: String): Boolean {
         return !p.contains(' ') && p.length >= 6
     }
@@ -242,7 +245,7 @@ class ChatViewModel(val auth: FirebaseAuth, application: Application) :
 
     fun sendMessage(body: String, chatId: String) {
         println(auth.currentUser?.displayName)
-        val messageDto = auth.currentUser?.displayName?.let { MessageDto(auth.uid.toString(), it, chatId, body, remoteRepository.timeToDbFormat()) }
+        val messageDto = auth.currentUser?.displayName?.let { MessageDto(auth.uid.toString(), authorName = it, chatId, body, remoteRepository.timeToDbFormat()) }
         remoteRepository.sendMessage(messageDto)
     }
 
@@ -253,5 +256,13 @@ class ChatViewModel(val auth: FirebaseAuth, application: Application) :
 
     }
 
+    fun loadMessagesFromRoom(hostState: SnackbarHostState,id: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            remoteRepository.getMessagesFromRoom(hostState, id)
+        }
+    }
+    fun getMessages(): MutableLiveData<List<MessageDto>> {
+        return remoteRepository.messages
+    }
 
 }
