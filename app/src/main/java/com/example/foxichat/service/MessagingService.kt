@@ -7,6 +7,9 @@ import com.example.foxichat.MainActivity
 import com.example.foxichat.R
 import com.example.foxichat.api.ApiFactory
 import com.example.foxichat.api.RetrofitClient
+import com.example.foxichat.dto.MessageDto
+import com.example.foxichat.model.RemoteRepository
+import com.example.foxichat.view_model.ChatViewModel
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import okhttp3.ResponseBody
@@ -16,7 +19,7 @@ import retrofit2.Response
 import java.time.LocalDateTime
 
 class MessagingService : FirebaseMessagingService() {
-
+    val remoteRepository = RemoteRepository()
 
     /**
      * Called when message is received.
@@ -31,10 +34,15 @@ class MessagingService : FirebaseMessagingService() {
         // Check if message contains a data payload.
         if (remoteMessage.data.isNotEmpty()) {
             Log.d(TAG, "Message data payload: ${remoteMessage.data}")
-            val displayName = remoteMessage.data["author_name"]
-            val body = remoteMessage.data["body"]
-            val timestamp = remoteMessage.data["timestamp"]
 
+            val displayName = remoteMessage.data["author_name"].orEmpty()
+            val authorId = remoteMessage.data["author_id"].orEmpty()
+            val roomId = remoteMessage.data["room_id"].orEmpty()
+            val body = remoteMessage.data["body"].orEmpty()
+            val timestamp = remoteMessage.data["timestamp"].orEmpty()
+
+            val message = MessageDto(authorId, displayName, roomId, body, timestamp)
+            ChatViewModel.addToCurrentMessages(message)
             val notification = NotificationCompat.Builder(this, MainActivity.FCM_CHANNEL_ID)
                 .setSmallIcon(R.drawable.logotype)
                 .setContentTitle(displayName)

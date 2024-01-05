@@ -1,6 +1,7 @@
 package com.example.foxichat.model
 
 import android.util.Log
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavHostController
@@ -28,9 +29,13 @@ class RemoteRepository {
     val TAG = "REMOTE_REPO"
     private val retrofit = RetrofitClient.getClient()
     val api: ApiFactory = retrofit.create(ApiFactory::class.java)
-    val messages: MutableLiveData<List<MessageDto>> by lazy {
-        MutableLiveData<List<MessageDto>>()
+    var chatState = LazyListState(0)
+    companion object {
+        val messages: MutableLiveData<MutableList<MessageDto>> by lazy {
+            MutableLiveData<MutableList<MessageDto>>()
+        }
     }
+
     fun createUser(
         nav: NavHostController,
         scope: CoroutineScope,
@@ -132,7 +137,8 @@ class RemoteRepository {
                 response.body()?.string()?.let {
                     messages.value =
                         gson.fromJson(it, Array<MessageDto>::class.java)
-                            .asList()
+                            .asList().toMutableList()
+                    chatState = LazyListState(messages.value!!.size - 1)
                     Log.d(TAG, messages.toString())
                 }
 
@@ -140,18 +146,20 @@ class RemoteRepository {
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                TODO("Not yet implemented")
+                CoroutineScope(Dispatchers.Main).launch {
+                    hostState.showSnackbar(
+                        message = "Something went wrong"
+                    )
+                }
             }
 
         })
     }
 
     fun sendMessage(messageDto: MessageDto?) {
-        val newList = mutableListOf<MessageDto>()
-        messages.value?.let { newList.addAll(it) }
-        messageDto?.let { newList.add(it) }
-        messages.value = newList
+
         if (messageDto != null) {
+            //addToCurrentMessages(messageDto)
             api.sendMessage(messageDto).enqueue(object : Callback<ResponseBody>{
                 override fun onResponse(
                     call: Call<ResponseBody>,
@@ -165,6 +173,17 @@ class RemoteRepository {
                 }
 
             })
+        }
+
+    }
+    fun addToCurrentMessages(msg: MessageDto) {
+        Log.d(TAG, msg.toString())
+
+
+        val list = messages.value?.let { ArrayList(it) }
+        list?.add(msg)
+        CoroutineScope(Dispatchers.Main).launch {
+            messages.value = list
         }
 
     }

@@ -89,7 +89,19 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+    override fun onStart() {
+        super.onStart()
+        // We will start writing our code here.
+    }
 
+    private fun connected() {
+        // Then we will write some more code here.
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // Aaand we will finish off here.
+    }
 
 
     private fun askNotificationPermission() {

@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -98,6 +99,8 @@ import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 
 class Screens(
@@ -112,9 +115,8 @@ class Screens(
     @Composable
     fun ChatScreen(chatId: String?) {
         val messages by viewModel.getMessages().observeAsState()
-        val state = remember {
-            LazyListState(messages?.size?.minus(1) ?: 0)
-        }
+        val state = rememberLazyListState(initialFirstVisibleItemIndex = messages?.size?.minus(1) ?: 0)
+
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             topBar = {
@@ -206,6 +208,11 @@ class Screens(
 
             ) {
                 if (messages != null) {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        val index = if (messages!!.size-1 >=0) messages!!.size-1 else 0
+                        state.scrollToItem(index = index)
+                    }
+
                     items(messages!!) {
                         MessageCard(msg = it)
                     }
@@ -1035,6 +1042,7 @@ class Screens(
                 .size(100.dp)
                 .shadow(0.5.dp)
                 .clickable(onClick = {
+                    ChatViewModel.currentChatId = room.id
                     viewModel.loadMessagesFromRoom(snackbarHostState, room.id)
                     nav.navigate(Screen.CHAT_SCREEN.name + "/${room.id}")
                 }),
@@ -1091,11 +1099,11 @@ class Screens(
             modifier = Modifier
                 .fillMaxWidth()
                 .size(70.dp)
-                .shadow(0.5.dp)
-                .clickable(onClick = {
-
-                    nav.navigate(Screen.CHAT_SCREEN.name)
-                }),
+                .shadow(0.5.dp),
+//                .clickable(onClick = {
+//
+//                    nav.navigate(Screen.CHAT_SCREEN.name)
+//                }),
             contentAlignment = Alignment.CenterStart
 
         ) {

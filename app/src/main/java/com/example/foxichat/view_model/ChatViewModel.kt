@@ -251,7 +251,7 @@ class ChatViewModel(val auth: FirebaseAuth, application: Application) :
 
     private fun sendNotificationToken() {
         CoroutineScope(Dispatchers.IO).launch {
-            remoteRepository.sendNotificationToken(auth.currentUser?.uid.toString())
+            remoteRepository.sendNotificationToken(auth.uid.toString())
         }
 
     }
@@ -261,8 +261,18 @@ class ChatViewModel(val auth: FirebaseAuth, application: Application) :
             remoteRepository.getMessagesFromRoom(hostState, id)
         }
     }
-    fun getMessages(): MutableLiveData<List<MessageDto>> {
-        return remoteRepository.messages
+    fun getMessages(): MutableLiveData<MutableList<MessageDto>> {
+        return RemoteRepository.messages
+    }
+
+    companion object {
+        var currentChatId = ""
+        fun addToCurrentMessages(msg: MessageDto) {
+            val repo = RemoteRepository()
+            if (currentChatId == msg.roomId) {
+                repo.addToCurrentMessages(msg)
+            }
+        }
     }
 
 }
