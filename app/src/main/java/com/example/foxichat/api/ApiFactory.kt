@@ -3,7 +3,6 @@ package com.example.foxichat.api
 import com.example.foxichat.dto.MessageDto
 import com.example.foxichat.dto.Room
 import com.example.foxichat.dto.UserDto
-import com.google.android.gms.common.internal.safeparcel.SafeParcelable.Param
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.Body

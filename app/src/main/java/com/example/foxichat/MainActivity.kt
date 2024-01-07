@@ -9,10 +9,6 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -20,23 +16,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import com.example.foxichat.navigation.NavigationHost
-import com.example.foxichat.navigation.Screen
 import com.example.foxichat.ui.theme.JetpackComposeExTheme
-import com.example.foxichat.user_interface.Screens
 import com.example.foxichat.view_model.ChatViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.CoroutineScope
 
 class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
@@ -95,7 +84,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun connected() {
-        // Then we will write some more code here.
+        // Todo
     }
 
     override fun onStop() {

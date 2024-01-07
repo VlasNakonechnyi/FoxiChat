@@ -1,7 +1,5 @@
 package com.example.foxichat.service
 
-import android.util.Log
-import androidx.room.Room
 import androidx.room.TypeConverter
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken

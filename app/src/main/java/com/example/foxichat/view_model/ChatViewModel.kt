@@ -50,28 +50,28 @@ class ChatViewModel(val auth: FirebaseAuth, application: Application) :
     }
 
     fun validatePhoneNumberField(s: String): Boolean {
-        if (s.isBlank() || s.contains(' ')) {
-            return false;
+        return if (s.isBlank() || s.contains(' ')) {
+            false
         } else {
-            return android.util.Patterns.PHONE.matcher(s).matches();
+            android.util.Patterns.PHONE.matcher(s).matches()
         }
     }
 
     fun validateEmailField(s: String): Boolean {
-        if (s.isBlank() || s.contains(' ')) {
-            return false;
+        return if (s.isBlank() || s.contains(' ')) {
+            false
         } else {
-            return android.util.Patterns.EMAIL_ADDRESS.matcher(s).matches();
+            android.util.Patterns.EMAIL_ADDRESS.matcher(s).matches()
         }
     }
 
     fun authUserNotNullDestination(): String {
-        if (auth.currentUser != null) {
+        return if (auth.currentUser != null) {
             sendNotificationToken()
             loadUserRooms()
-            return Screen.HOME.name
+            Screen.HOME.name
         } else {
-            return Screen.SIGNIN.name
+            Screen.SIGNIN.name
         }
     }
 
@@ -99,7 +99,6 @@ class ChatViewModel(val auth: FirebaseAuth, application: Application) :
     }
 
     fun createNewRoom(
-        nav: NavHostController,
         hostState: SnackbarHostState,
         scope: CoroutineScope,
         name: String
@@ -107,7 +106,6 @@ class ChatViewModel(val auth: FirebaseAuth, application: Application) :
         println("CREATE NEW ROOM WORKED")
         CoroutineScope(Dispatchers.IO).launch {
             remoteRepository.createNewRoom(
-                nav,
                 hostState,
                 scope,
                 name,

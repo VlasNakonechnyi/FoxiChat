@@ -61,7 +61,7 @@ class RemoteRepository {
        // Log.d("RESPONSE_BODY", response.toString())
     }
     fun createNewRoom(
-        nav: NavHostController,
+
         hostState: SnackbarHostState,
         scope: CoroutineScope,
         name: String,
