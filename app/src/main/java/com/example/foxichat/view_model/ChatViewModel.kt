@@ -8,13 +8,13 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavHostController
+import com.example.foxichat.auth
 import com.example.foxichat.dto.MessageDto
 import com.example.foxichat.dto.Room
 import com.example.foxichat.dto.UserDto
 import com.example.foxichat.model.RemoteRepository
 import com.example.foxichat.model.RoomsDatabase
 import com.example.foxichat.navigation.Screen
-import com.google.firebase.auth.FirebaseAuth
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,19 +26,14 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class ChatViewModel(val auth: FirebaseAuth, private val application: Application) :
+class ChatViewModel(private val application: Application) :
     AndroidViewModel(application) {
     private val remoteRepository = RemoteRepository(application.applicationContext)
     companion object {
 
         const val PASSWORD_LENGTH = 6
-        var currentChatId = ""
-//        fun addToCurrentMessages(msg: MessageDto) {
-//
-//            if (currentChatId == msg.roomId) {
-//                repo.addToCurrentMessages(msg)
-//            }
-//        }
+
+
     }
  //   private val remoteRepository = RemoteRepository()
 
@@ -183,7 +178,7 @@ class ChatViewModel(val auth: FirebaseAuth, private val application: Application
                     call: Call<ResponseBody>,
                     response: Response<ResponseBody>
                 ) {
-                    CoroutineScope(Dispatchers.IO).launch{ deleteAllRooms()}
+                    //CoroutineScope(Dispatchers.IO).launch{ deleteAllRooms()}
                     response.body()?.string()?.let {
                         val rooms = gson.fromJson(it, Array<Room>::class.java).asList()
                         Log.d("USERS_LOADING_API", rooms.toString())
@@ -255,7 +250,7 @@ class ChatViewModel(val auth: FirebaseAuth, private val application: Application
 
     fun sendMessage(body: String, chatId: String) {
         println(auth.currentUser?.displayName)
-        val messageDto = auth.currentUser?.displayName?.let { MessageDto("000000000000000000000000",auth.uid.toString(), authorName = it, chatId, body, remoteRepository.timeToDbFormat()) }
+        val messageDto = auth.currentUser?.displayName?.let { MessageDto("0".repeat(24),auth.uid.toString(), authorName = it, chatId, body, remoteRepository.timeToDbFormat()) }
         remoteRepository.sendMessage(messageDto)
     }
 
@@ -272,7 +267,7 @@ class ChatViewModel(val auth: FirebaseAuth, private val application: Application
         }
     }
     fun getMessages(): MutableLiveData<MutableList<MessageDto>> {
-        return remoteRepository.messages
+        return RemoteRepository.messages
     }
 
 

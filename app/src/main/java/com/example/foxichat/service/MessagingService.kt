@@ -25,7 +25,7 @@ import java.time.LocalDateTime
 class MessagingService : FirebaseMessagingService() {
    // val remoteRepository = RemoteRepository()
    companion object {
-       val messages = mutableListOf<MessageDto>()
+
        private const val TAG = "MyFirebaseMsgService"
    }
     /**
@@ -50,7 +50,8 @@ class MessagingService : FirebaseMessagingService() {
             val body = remoteMessage.data["body"].orEmpty()
             val timestamp = remoteMessage.data["timestamp"].orEmpty()
             val message = MessageDto(id, authorId, displayName, roomId, body, timestamp)
-            messages.add(message)
+
+            RemoteRepository.addToCurrentMessages(message)
             //ChatViewModel.addToCurrentMessages(message)
 
 
