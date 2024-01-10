@@ -59,9 +59,10 @@ fun NavigationHost(
         composable(Screen.SIGNIN.name) {
             screens.SignInScreen()
         }
-        composable(Screen.CHAT_SCREEN.name + "/{chat_id}") {
+        composable(Screen.CHAT_SCREEN.name + "/{chat_id}/{chat_name}") {
             val chatId = it.arguments?.getString("chat_id")
-            screens.ChatScreen(chatId)
+            val chatName = it.arguments?.getString("chat_name")
+            screens.ChatScreen(chatId, chatName)
         }
         composable(Screen.TEST_SCREEN.name) {
             screens.TestNotificationScreen()

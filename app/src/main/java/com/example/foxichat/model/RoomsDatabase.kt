@@ -4,13 +4,15 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.example.foxichat.dto.MessageDto
 import com.example.foxichat.dto.Room
 
-@Database(entities = [Room::class], version = 2)
+@Database(entities = [Room::class, MessageDto::class], version = 4)
 
 @TypeConverters(com.example.foxichat.service.Converters::class)
 abstract class RoomsDatabase: RoomDatabase() {
     abstract fun roomDao(): RoomDao
+    abstract fun messageDao(): MessageDao
 
     companion object {
         @Volatile private var instance: RoomsDatabase? = null

@@ -26,11 +26,21 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class ChatViewModel(val auth: FirebaseAuth, application: Application) :
+class ChatViewModel(val auth: FirebaseAuth, private val application: Application) :
     AndroidViewModel(application) {
+    private val remoteRepository = RemoteRepository(application.applicationContext)
+    companion object {
 
-
-    private val remoteRepository = RemoteRepository()
+        const val PASSWORD_LENGTH = 6
+        var currentChatId = ""
+//        fun addToCurrentMessages(msg: MessageDto) {
+//
+//            if (currentChatId == msg.roomId) {
+//                repo.addToCurrentMessages(msg)
+//            }
+//        }
+    }
+ //   private val remoteRepository = RemoteRepository()
 
     val roomsList: MutableLiveData<List<Room>> by lazy {
         MutableLiveData<List<Room>>()
@@ -40,13 +50,14 @@ class ChatViewModel(val auth: FirebaseAuth, application: Application) :
     }
 
 
+
     // *********************** INPUT VALIDATION *******************************
 
     fun isMessageFromMe(msg: MessageDto): Boolean {
         return msg.authorId == auth.uid.toString()
     }
     fun validatePasswordField(p: String): Boolean {
-        return !p.contains(' ') && p.length >= 6
+        return !p.contains(' ') && p.length >= PASSWORD_LENGTH
     }
 
     fun validatePhoneNumberField(s: String): Boolean {
@@ -229,6 +240,7 @@ class ChatViewModel(val auth: FirebaseAuth, application: Application) :
             "USERS_LOADING_FROM_DB",
             RoomsDatabase(getApplication()).roomDao().getAllRooms().toString()
         )
+
         return RoomsDatabase(getApplication()).roomDao().getAllRooms().toMutableStateList()
     }
 
@@ -243,7 +255,7 @@ class ChatViewModel(val auth: FirebaseAuth, application: Application) :
 
     fun sendMessage(body: String, chatId: String) {
         println(auth.currentUser?.displayName)
-        val messageDto = auth.currentUser?.displayName?.let { MessageDto(auth.uid.toString(), authorName = it, chatId, body, remoteRepository.timeToDbFormat()) }
+        val messageDto = auth.currentUser?.displayName?.let { MessageDto("000000000000000000000000",auth.uid.toString(), authorName = it, chatId, body, remoteRepository.timeToDbFormat()) }
         remoteRepository.sendMessage(messageDto)
     }
 
@@ -260,17 +272,11 @@ class ChatViewModel(val auth: FirebaseAuth, application: Application) :
         }
     }
     fun getMessages(): MutableLiveData<MutableList<MessageDto>> {
-        return RemoteRepository.messages
+        return remoteRepository.messages
     }
 
-    companion object {
-        var currentChatId = ""
-        fun addToCurrentMessages(msg: MessageDto) {
-            val repo = RemoteRepository()
-            if (currentChatId == msg.roomId) {
-                repo.addToCurrentMessages(msg)
-            }
-        }
-    }
+
+
+
 
 }

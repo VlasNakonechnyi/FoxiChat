@@ -3,15 +3,19 @@ package com.example.foxichat.service
 import android.app.NotificationManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.lifecycle.MutableLiveData
 import com.example.foxichat.MainActivity
 import com.example.foxichat.R
 import com.example.foxichat.api.ApiFactory
 import com.example.foxichat.api.RetrofitClient
+import com.example.foxichat.auth
 import com.example.foxichat.dto.MessageDto
 import com.example.foxichat.model.RemoteRepository
 import com.example.foxichat.view_model.ChatViewModel
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
@@ -19,8 +23,11 @@ import retrofit2.Response
 import java.time.LocalDateTime
 
 class MessagingService : FirebaseMessagingService() {
-    val remoteRepository = RemoteRepository()
-
+   // val remoteRepository = RemoteRepository()
+   companion object {
+       val messages = mutableListOf<MessageDto>()
+       private const val TAG = "MyFirebaseMsgService"
+   }
     /**
      * Called when message is received.
      *
@@ -33,24 +40,30 @@ class MessagingService : FirebaseMessagingService() {
 
         // Check if message contains a data payload.
         if (remoteMessage.data.isNotEmpty()) {
+
             Log.d(TAG, "Message data payload: ${remoteMessage.data}")
 
+            val id = remoteMessage.data["id"].orEmpty()
             val displayName = remoteMessage.data["author_name"].orEmpty()
             val authorId = remoteMessage.data["author_id"].orEmpty()
             val roomId = remoteMessage.data["room_id"].orEmpty()
             val body = remoteMessage.data["body"].orEmpty()
             val timestamp = remoteMessage.data["timestamp"].orEmpty()
+            val message = MessageDto(id, authorId, displayName, roomId, body, timestamp)
+            messages.add(message)
+            //ChatViewModel.addToCurrentMessages(message)
 
-            val message = MessageDto(authorId, displayName, roomId, body, timestamp)
-            ChatViewModel.addToCurrentMessages(message)
-            val notification = NotificationCompat.Builder(this, MainActivity.FCM_CHANNEL_ID)
-                .setSmallIcon(R.drawable.logotype)
-                .setContentTitle(displayName)
-                .setContentText(body)
-                .build()
 
-            val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-            manager.notify(1002, notification)
+            if (authorId != auth.uid.toString()) {
+                val notification = NotificationCompat.Builder(this, MainActivity.FCM_CHANNEL_ID)
+                    .setSmallIcon(R.drawable.logotype)
+                    .setContentTitle(displayName)
+                    .setContentText(body)
+                    .build()
+
+                val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+                manager.notify(1002, notification)
+            }
         }
 
         // Check if message contains a notification payload.
@@ -78,7 +91,7 @@ class MessagingService : FirebaseMessagingService() {
         // If you want to send messages to this application instance or
         // manage this apps subscriptions on the server side, send the
         // FCM registration token to your app server.
-        sendRegistrationToServer(token)
+       // sendRegistrationToServer(token)
     }
     // [END on_new_token]
 
@@ -138,46 +151,8 @@ class MessagingService : FirebaseMessagingService() {
      *
      * @param messageBody FCM message body received.
      */
-//    private fun sendNotification(messageBody: String) {
-//        val requestCode = 0
-//        val intent = Intent(this, MainActivity::class.java)
-//        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-//        val pendingIntent = PendingIntent.getActivity(
-//            this,
-//            requestCode,
-//            intent,
-//            PendingIntent.FLAG_IMMUTABLE,
-//        )
-//
-//        val channelId = getString(R.string.default_notification_channel_id)
-//        val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-//        val notificationBuilder = NotificationCompat.Builder(this, channelId)
-//            .setSmallIcon(R.drawable.ic_stat_ic_notification)
-//            .setContentTitle(getString(R.string.fcm_message))
-//            .setContentText(messageBody)
-//            .setAutoCancel(true)
-//            .setSound(defaultSoundUri)
-//            .setContentIntent(pendingIntent)
-//
-//        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-//
-//        // Since android Oreo notification channel is needed.
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//            val channel = NotificationChannel(
-//                channelId,
-//                "Channel human readable title",
-//                NotificationManager.IMPORTANCE_DEFAULT,
-//            )
-//            notificationManager.createNotificationChannel(channel)
-//        }
-//
-//        val notificationId = 0
-//        notificationManager.notify(notificationId, notificationBuilder.build())
-//    }
 
-    companion object {
 
-        private const val TAG = "MyFirebaseMsgService"
-    }
+
 
 }

@@ -101,9 +101,11 @@ class Screens(
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun ChatScreen(chatId: String?) {
+    fun ChatScreen(chatId: String?, chatName: String?) {
         val messages by viewModel.getMessages().observeAsState()
         val state = rememberLazyListState(initialFirstVisibleItemIndex = messages?.size?.minus(1) ?: 0)
+
+
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -117,13 +119,11 @@ class Screens(
                     ),
 
                     title = {
-                        Text(
-                            "Room",
-                        )
+                        chatName?.let { Text(it) }
                     },
                     navigationIcon = {
                         IconButton(onClick = {
-                            nav.navigate(Screen.HOME.name)
+                            nav.popBackStack()
                         }) {
                             Icon(
                                 Icons.Outlined.KeyboardArrowLeft,
@@ -827,6 +827,7 @@ class Screens(
         val userRoomsList by viewModel.userRoomList.observeAsState()
         val allRoomsList by viewModel.roomsList.observeAsState()
 
+        ChatViewModel
 
         fun refresh() = refreshScope.launch {
             refreshing = true
@@ -842,6 +843,7 @@ class Screens(
             floatingActionButton = {
                 FloatingActionButton(
                     onClick = {
+
                         viewModel.getAllRooms()
                         showBottomSheet = true
 
@@ -868,18 +870,7 @@ class Screens(
                             "Chats",
                         )
                     },
-                    navigationIcon = {
-                        IconButton(onClick = {
-                            viewModel.signOut()
-                            nav.navigate(Screen.SIGNIN.name)
 
-                        }) {
-                            Icon(
-                                Icons.Outlined.KeyboardArrowLeft,
-                                contentDescription = ""
-                            )
-                        }
-                    },
                     actions = {
                         IconButton(onClick = { /*TODO*/ }) {
                             Icon(
@@ -1032,7 +1023,7 @@ class Screens(
                 .clickable(onClick = {
                     ChatViewModel.currentChatId = room.id
                     viewModel.loadMessagesFromRoom(snackbarHostState, room.id)
-                    nav.navigate(Screen.CHAT_SCREEN.name + "/${room.id}")
+                    nav.navigate(Screen.CHAT_SCREEN.name + "/${room.id}/${room.name}")
                 }),
             contentAlignment = Alignment.CenterStart
 
@@ -1045,7 +1036,7 @@ class Screens(
 
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                    painter = painterResource(id = R.drawable.logotype),
                     contentDescription = null,
                     modifier = Modifier
                         .size(80.dp)

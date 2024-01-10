@@ -1,8 +1,11 @@
 package com.example.foxichat.model
 
+import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.SnackbarHostState
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavHostController
 import com.example.foxichat.api.ApiFactory
@@ -17,7 +20,9 @@ import com.google.firebase.messaging.ktx.messaging
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
@@ -25,16 +30,21 @@ import retrofit2.Response
 import java.time.LocalDate
 import java.time.LocalTime
 
-class RemoteRepository {
+class RemoteRepository (
+    val context: Context
+) {
+    val Context.application: Application
+        get() = this.applicationContext as Application
+
     val TAG = "REMOTE_REPO"
     private val retrofit = RetrofitClient.getClient()
     val api: ApiFactory = retrofit.create(ApiFactory::class.java)
-    var chatState = LazyListState(0)
-    companion object {
-        val messages: MutableLiveData<MutableList<MessageDto>> by lazy {
+
+
+    val messages: MutableLiveData<MutableList<MessageDto>> by lazy {
             MutableLiveData<MutableList<MessageDto>>()
-        }
     }
+
 
     fun createUser(
         nav: NavHostController,
@@ -135,10 +145,18 @@ class RemoteRepository {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
 
                 response.body()?.string()?.let {
-                    messages.value =
+                    val messages =
                         gson.fromJson(it, Array<MessageDto>::class.java)
-                            .asList().toMutableList()
-                    chatState = LazyListState(messages.value!!.size - 1)
+                            .asList()
+                        CoroutineScope(Dispatchers.IO).launch {
+                            insertMessagesToLocalDb(messages)
+                            val res = async{ getMessagesFromLocalDb(roomId)}
+                            withContext(Dispatchers.Main) {
+                                this@RemoteRepository.messages.value = res.await()
+                            }
+
+                        }
+
                     Log.d(TAG, messages.toString())
                 }
 
@@ -146,6 +164,13 @@ class RemoteRepository {
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val res = async{ getMessagesFromLocalDb(roomId)}
+                    withContext(Dispatchers.Main) {
+                        this@RemoteRepository.messages.value = res.await()
+                    }
+
+                }
                 CoroutineScope(Dispatchers.Main).launch {
                     hostState.showSnackbar(
                         message = "Something went wrong"
@@ -155,6 +180,7 @@ class RemoteRepository {
 
         })
     }
+
 
     fun sendMessage(messageDto: MessageDto?) {
 
@@ -228,6 +254,17 @@ class RemoteRepository {
 
             },
         )
+    }
+
+    suspend fun insertMessagesToLocalDb(messages: List<MessageDto>) {
+
+            RoomsDatabase(context.application).messageDao().insertMessages(
+                messages
+            )
+
+    }
+    suspend fun getMessagesFromLocalDb(id: String) : MutableList<MessageDto> {
+        return RoomsDatabase(context.application).messageDao().getMessagesFromLocalDb(id)
     }
 
 

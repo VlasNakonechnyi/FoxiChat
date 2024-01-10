@@ -28,7 +28,7 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
 class MainActivity : ComponentActivity() {
-    private lateinit var auth: FirebaseAuth
+
     companion object {
         const val FCM_CHANNEL_ID = "FCM_CHANNEL_ID"
     }
