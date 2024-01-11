@@ -115,5 +115,5 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version")
     implementation("androidx.compose.material:material:1.5.4")
     implementation ("androidx.compose.runtime:runtime-livedata:1.5.4")
-    implementation ("com.github.orioneee:ctm:1.0.5")
+    implementation ("com.github.orioneee:ctm:1.0.6")
 }

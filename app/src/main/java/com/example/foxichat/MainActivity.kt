@@ -112,16 +112,19 @@ class MainActivity : ComponentActivity() {
         val viewModel = ChatViewModel(application = application)
 
         askNotificationPermission()
-        enableEdgeToEdge()
+
         setContent {
+            val scope = rememberCoroutineScope()
+            val snackbarHostState = remember { SnackbarHostState() }
             val navController = rememberNavController()
-            Ctm.Theme {
+            JetpackComposeExTheme {
                 Surface(
                     modifier = Modifier
                         .fillMaxSize()
-                        .navigationBarsPadding()
+
                 ) {
-                    GeneralScaffold(navController = navController, viewModel = viewModel)
+                    NavigationHost(scope, snackbarHostState, viewModel, navController)
+
                 }
             }
 

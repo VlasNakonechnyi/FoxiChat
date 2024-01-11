@@ -1,6 +1,5 @@
 package com.example.foxichat.user_interface
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,8 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -35,10 +32,8 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,37 +42,43 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavHostController
 import com.example.foxichat.navigation.BottomNavItems
-import com.example.foxichat.navigation.NavigationHost
-import com.example.foxichat.navigation.Screen
 import com.example.foxichat.view_model.ChatViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 val isNavBarVisible by lazy {
     MutableLiveData<Boolean>()
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GeneralScaffold(navController: NavHostController, viewModel: ChatViewModel) {
-    isNavBarVisible.value = true
-    val scope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
+fun GeneralScaffold(
+    snackbarHostState: SnackbarHostState,
+    navController: NavHostController,
+    viewModel: ChatViewModel,
+    topAppBarText: String,
+    actions: @Composable () -> Unit,
+    body: @Composable () -> Unit,
+) {
+
+
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
-    val allRoomsList by viewModel.roomsList.observeAsState()
-    val screens = Screens(navController, viewModel, snackbarHostState)
+
     var openAlertDialog by remember { mutableStateOf(false) }
-    var isBarVisible = isNavBarVisible.observeAsState()
+
 
     when {
         openAlertDialog -> {
-            screens.CreateRoomAlertDialog(
+            CreateRoomAlertDialog(
                 onDismissRequest = {
                     openAlertDialog = false
                     showBottomSheet = false
                 },
                 onConfirmation = { name ->
 
-                    viewModel.createNewRoom(snackbarHostState, scope, name = name)
+                    viewModel.createNewRoom(snackbarHostState, name = name)
                     openAlertDialog = false
                     showBottomSheet = false
                     viewModel.loadUserRooms()
@@ -91,94 +92,75 @@ fun GeneralScaffold(navController: NavHostController, viewModel: ChatViewModel) 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
-            AnimatedVisibility(
-                visible = navController.currentDestination?.route != Screen.SIGNIN.name &&
-                        navController.currentDestination?.route != Screen.SIGNUP.name
-            ) {
 
-                CenterAlignedTopAppBar(
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        navigationIconContentColor = MaterialTheme.colorScheme.secondary,
-                        titleContentColor = MaterialTheme.colorScheme.secondary,
-                        actionIconContentColor = MaterialTheme.colorScheme.secondary,
-                    ),
+            CenterAlignedTopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    navigationIconContentColor = MaterialTheme.colorScheme.secondary,
+                    titleContentColor = MaterialTheme.colorScheme.secondary,
+                    actionIconContentColor = MaterialTheme.colorScheme.secondary,
+                ),
 
-                    title = {
-                        Text(
-                            "Chats",
-                        )
-                    },
+                title = {
+                    Text(
+                        topAppBarText,
+                    )
+                },
 
-                    actions = {
+                actions = {
 
-                    }
+                }
 
-                )
-            }
+            )
         },
-
         floatingActionButton = {
 
-            isBarVisible.value?.let {
-                AnimatedVisibility(it) {
-                    FloatingActionButton(
-                        onClick = {
+            FloatingActionButton(
+                onClick = {
 
-                            viewModel.getAllRooms()
-                            showBottomSheet = true
+                    viewModel.getAllRooms()
+                    showBottomSheet = true
 
-                        },
-                        shape = CircleShape,
-                        containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
-                        elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
-                    ) {
-                        Icon(Icons.Outlined.Add, "Localized description")
-                    }
-                }
+                },
+                shape = CircleShape,
+                containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
+                elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
+            ) {
+                Icon(Icons.Outlined.Add, "Localized description")
             }
-
 
         },
         bottomBar = {
 
-            isBarVisible.value?.let {
-                AnimatedVisibility(visible = it) {
+            NavigationBar(
+                modifier = Modifier
 
-                    NavigationBar(
-                        modifier = Modifier
-
-                            .clip(RoundedCornerShape(30.dp))
-                            .height(50.dp),
-                        containerColor = MaterialTheme.colorScheme.primary
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceAround
-                        ) {
-                            BottomNavItems.bottomNavItems.forEach {
-                                IconButton(onClick = {
-                                    navController.navigate(it.route) {
-                                        popUpTo(navController.graph.startDestinationId) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
-
-                                    }
-                                }) {
-                                    it.icon()
+                    .clip(RoundedCornerShape(30.dp))
+                    .height(50.dp),
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceAround
+                ) {
+                    BottomNavItems.bottomNavItems.forEach {
+                        IconButton(onClick = {
+                            navController.navigate(it.route) {
+                                popUpTo(navController.graph.startDestinationId) {
+                                    saveState = true
                                 }
-                            }
-                        }
+                                launchSingleTop = true
+                                restoreState = true
 
+                            }
+                        }) {
+                            it.icon()
+                        }
                     }
                 }
+
             }
-
-
-
         }
     ) {
         Box(
@@ -186,8 +168,7 @@ fun GeneralScaffold(navController: NavHostController, viewModel: ChatViewModel) 
                 .fillMaxSize()
                 .padding(it)
         ) {
-            println(it.calculateBottomPadding())
-            NavigationHost(scope, snackbarHostState, viewModel, navController)
+            body()
             if (showBottomSheet) {
                 ModalBottomSheet(
                     modifier = Modifier
@@ -207,7 +188,7 @@ fun GeneralScaffold(navController: NavHostController, viewModel: ChatViewModel) 
                             horizontalArrangement = Arrangement.SpaceAround
                         ) {
                             TextButton(onClick = {
-                                scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                CoroutineScope(Dispatchers.Main).launch { sheetState.hide() }.invokeOnCompletion {
                                     if (!sheetState.isVisible) {
                                         showBottomSheet = false
                                     }
@@ -225,21 +206,10 @@ fun GeneralScaffold(navController: NavHostController, viewModel: ChatViewModel) 
 
                         }
 
-                        LazyColumn(
-                            modifier = androidx.compose.ui.Modifier.padding(it)
-                        ) {
-                            if (allRoomsList != null) {
-                                items(items = allRoomsList!!) {
-                                    screens.RoomInJoinRoomList(room = it)
-                                }
-                            }
 
-                        }
                     }
-
                 }
             }
         }
-
     }
 }

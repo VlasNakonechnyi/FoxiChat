@@ -13,6 +13,5 @@ interface MessageDao {
     @Query("SELECT * FROM messagedto WHERE room_id = :roomId")
     suspend fun getMessagesFromLocalDb(roomId: String): MutableList<MessageDto>
 
-    @Query("DELETE FROM messagedto")
-    suspend fun deleteAllMessages()
+
 }

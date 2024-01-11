@@ -4,11 +4,12 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import com.example.foxichat.dto.Room
 
 @Dao
 interface RoomDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun insertRooms(rooms :List<Room>): List<Long>
 
     @Query("SELECT * FROM room")

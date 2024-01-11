@@ -4,7 +4,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,49 +12,25 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Send
-import androidx.compose.material.icons.outlined.AccountCircle
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Clear
-import androidx.compose.material.icons.outlined.KeyboardArrowLeft
-import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -63,22 +38,17 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -92,14 +62,10 @@ import androidx.navigation.NavHostController
 import com.example.foxichat.R
 import com.example.foxichat.auth
 import com.example.foxichat.dto.MessageDto
-import com.example.foxichat.dto.Room
 import com.example.foxichat.navigation.Screen
 import com.example.foxichat.view_model.ChatViewModel
-import com.github.orioneee.ColorMode
-import com.github.orioneee.Ctm
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 class Screens(
@@ -115,44 +81,13 @@ class Screens(
         val messages by viewModel.getMessages().observeAsState()
         val state =
             rememberLazyListState(initialFirstVisibleItemIndex = messages?.size?.minus(1) ?: 0)
-
+        val isReady = viewModel.isChatReady.observeAsState(false)
 
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            topBar = {
-                CenterAlignedTopAppBar(
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        navigationIconContentColor = MaterialTheme.colorScheme.secondary,
-                        titleContentColor = MaterialTheme.colorScheme.secondary,
-                        actionIconContentColor = MaterialTheme.colorScheme.secondary,
-                    ),
 
-                    title = {
-                        chatName?.let { Text(it) }
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = {
-                            nav.popBackStack()
-                        }) {
-                            Icon(
-                                Icons.Outlined.KeyboardArrowLeft,
-                                contentDescription = ""
-                            )
-                        }
-                    },
-                    actions = {
-                        IconButton(onClick = { /*TODO*/ }) {
-                            Icon(
-                                Icons.Outlined.MoreVert,
-                                contentDescription = ""
-                            )
-                        }
-                    }
 
-                )
-            },
             bottomBar = {
                 Box(
                     modifier = Modifier
@@ -198,23 +133,31 @@ class Screens(
                 }
             }
         ) { innerPadding ->
+            if (isReady.value) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    state = state
 
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                state = state
+                ) {
+                    if (messages != null) {
+                        CoroutineScope(Dispatchers.Main).launch {
+                            val index = if (messages!!.size - 1 >= 0) messages!!.size - 1 else 0
+                            state.scrollToItem(index = index)
+                        }
 
-            ) {
-                if (messages != null) {
-                    CoroutineScope(Dispatchers.Main).launch {
-                        val index = if (messages!!.size - 1 >= 0) messages!!.size - 1 else 0
-                        state.scrollToItem(index = index)
+                        items(messages!!) {
+                            MessageCard(msg = it)
+                        }
                     }
-
-                    items(messages!!) {
-                        MessageCard(msg = it)
-                    }
+                }
+            } else {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    androidx.compose.material3.CircularProgressIndicator()
                 }
             }
 
@@ -742,7 +685,7 @@ class Screens(
 //            )
             Button(
                 onClick = {
-
+                    println("SENT_tokEN")
                     val email = emailValue.text.trim()
                     val password = passwordValue.text
                     if (email.isNotBlank() && password.isNotBlank()) {
@@ -778,316 +721,70 @@ class Screens(
 
     @Composable
     fun SignInScreen() {
-        val title = stringResource(id = R.string.welcome_text)
+        if (auth.currentUser != null) {
+            nav.navigate(Screen.HOME.name)
+        } else {
+            val title = stringResource(id = R.string.welcome_text)
 
-        val colors = listOf(
-            MaterialTheme.colorScheme.onPrimary,
-            MaterialTheme.colorScheme.secondary,
-            MaterialTheme.colorScheme.tertiary,
-            MaterialTheme.colorScheme.surface,
-        )
+            val colors = listOf(
+                MaterialTheme.colorScheme.onPrimary,
+                MaterialTheme.colorScheme.secondary,
+                MaterialTheme.colorScheme.tertiary,
+                MaterialTheme.colorScheme.surface,
+            )
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-
-                .background(brush = Brush.linearGradient(colors), alpha = 0.5f),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Image(
-                        modifier = Modifier
-                            .size(150.dp),
-                        contentScale = ContentScale.Crop,
-                        painter = painterResource(id = R.drawable.logo),
-                        contentDescription = "logo"
-                    )
-                    //Spacer(modifier = Modifier.height(20.dp))
-                    Text(
-                        text = title,
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.ExtraBold
-                    )
-                }
-                //Spacer(modifier = Modifier.height(20.dp))
-                SignInCol()
+                    .fillMaxSize()
 
+                    .background(brush = Brush.linearGradient(colors), alpha = 0.5f),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            modifier = Modifier
+                                .size(150.dp),
+                            contentScale = ContentScale.Crop,
+                            painter = painterResource(id = R.drawable.logo),
+                            contentDescription = "logo"
+                        )
+                        //Spacer(modifier = Modifier.height(20.dp))
+                        Text(
+                            text = title,
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    }
+                    //Spacer(modifier = Modifier.height(20.dp))
+                    SignInCol()
+
+                }
             }
         }
     }
 
     //******************************************** HOME SCREEN *********************************************
 
-    @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
-    @Composable
-    fun HomeScreen() {
-
-
-        val refreshScope = rememberCoroutineScope()
-        var refreshing by remember { mutableStateOf(false) }
-        val userRoomsList by viewModel.userRoomList.observeAsState()
-
-
-        ChatViewModel
-
-        fun refresh() = refreshScope.launch {
-            refreshing = true
-            val res = async { viewModel.loadUserRooms() }
-            res.await()
-            refreshing = false
-        }
-
-        val state = rememberPullRefreshState(refreshing, ::refresh)
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .pullRefresh(state),//
-//
-
-
-//        ) { it ->
-//            Box(
-//                modifier = Modifier
-//                    .padding(it)
-//                    .fillMaxSize()
-//
-//
-
-        ) {
-            LazyColumn {
-                if (userRoomsList != null) {
-                    items(userRoomsList!!) {
-                        RoomInUserRoomsList(room = it)
-                    }
-                }
-
-            }
-            PullRefreshIndicator(refreshing, state, Modifier.align(Alignment.TopCenter))
-        }
 
 
 
 
 
-    }
 
 
-    @Composable
-    fun RoomInUserRoomsList(room: Room) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .size(100.dp)
-                .shadow(0.5.dp)
-                .clickable(onClick = {
-                    viewModel.loadMessagesFromRoom(snackbarHostState, room.id)
-                    nav.navigate(Screen.CHAT_SCREEN.name + "/${room.id}/${room.name}")
-                }),
-            contentAlignment = Alignment.CenterStart
-
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(all = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.logotype),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clip(CircleShape)
 
 
-                )
 
-                Row(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceAround
-                ) {
-                    Text(
-                        text = room.name,
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontSize = 16.sp
-                    )
-                    Box {
-                        Text(
-                            text = "Today, 14:00",
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                    }
-
-                }
-
-
-            }
-        }
-    }
-
-
-    @Composable
-    fun RoomInJoinRoomList(room: Room) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .size(70.dp)
-                .shadow(0.5.dp),
-//                .clickable(onClick = {
-//
-//                    nav.navigate(Screen.CHAT_SCREEN.name)
-//                }),
-            contentAlignment = Alignment.CenterStart
-
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(all = 10.dp)
-
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape)
-
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                Row(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceAround
-                ) {
-                    Text(
-                        text = room.name,
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                    if (room.users.contains(
-                            auth.uid.toString()
-                        )
-                    ) {
-                        Text(
-                            text = "You are in this room",
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    } else {
-                        Button(
-                            onClick = {
-                                viewModel.joinRoom(snackbarHostState, room.id)
-                                viewModel.getAllRooms()
-                            },
-                            shape = RoundedCornerShape(50),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                contentColor = MaterialTheme.colorScheme.primary
-                            )
-
-                        ) {
-                            Text(text = "Join")
-                        }
-                    }
-                }
-
-
-            }
-        }
-    }
-
-    @Composable
-    fun CreateRoomAlertDialog(
-        onDismissRequest: () -> Unit,
-        onConfirmation: (name: String) -> Unit,
-        dialogTitle: String,
-        icon: ImageVector,
-    ) {
-        var roomNameTextFieldValue by remember {
-            mutableStateOf(TextFieldValue(""))
-        }
-        AlertDialog(
-            icon = {
-                Icon(icon, contentDescription = "Example Icon")
-            },
-            title = {
-                Text(text = dialogTitle)
-            },
-            text = {
-                Column {
-                    TextField(
-                        singleLine = true,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(all = 20.dp),
-                        value = roomNameTextFieldValue,
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                            unfocusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                            focusedIndicatorColor = MaterialTheme.colorScheme.primary
-                        ),
-                        onValueChange = {
-                            roomNameTextFieldValue = it
-                        },
-                        placeholder = {
-                            Text(text = "Name")
-                        },
-
-                        trailingIcon = {
-                            IconButton(
-                                onClick = {
-                                    roomNameTextFieldValue = TextFieldValue("")
-                                }
-                            ) {
-                                Icon(
-                                    Icons.Outlined.Clear,
-                                    contentDescription = "clear text",
-                                )
-                            }
-                        }
-                    )
-                }
-            },
-            onDismissRequest = {
-                onDismissRequest()
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onConfirmation(roomNameTextFieldValue.text.trim())
-                    }
-                ) {
-                    Text("Confirm")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        onDismissRequest()
-                    }
-                ) {
-                    Text("Dismiss")
-                }
-            }
-        )
-    }
 
     //    companion object {
 //        private const val TAG = "CHAT_SCREEN"
@@ -1103,36 +800,10 @@ class Screens(
 
     @Composable
     fun SettingsScreen() {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(all = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(text = "Themes")
-            LazyVerticalStaggeredGrid(
 
-                columns = StaggeredGridCells.Adaptive(50.dp),
-                verticalItemSpacing = 4.dp,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                items(Ctm.AllColorModes) {
-                    ColorMode(cm = it)
-                }
-            }
-        }
     }
 
-    @Composable
-    fun ColorMode(cm: ColorMode) {
-        Surface(
-            modifier = Modifier
-                .size(50.dp)
-                .clip(CircleShape)
-                .clickable { Ctm.setColorMode(cm) },
-            color = cm.theme.light.primary
-        ) {}
-    }
+
 
 }
 

@@ -40,8 +40,12 @@ class ChatViewModel(private val application: Application) :
     val roomsList: MutableLiveData<List<Room>> by lazy {
         MutableLiveData<List<Room>>()
     }
-    val userRoomList: MutableLiveData<List<Room>> by lazy {
-        MutableLiveData<List<Room>>()
+
+    val isChatReady by lazy {
+        MutableLiveData<Boolean>()
+    }
+    val isHomeScreenReady by lazy {
+        MutableLiveData<Boolean>()
     }
 
 
@@ -71,15 +75,7 @@ class ChatViewModel(private val application: Application) :
         }
     }
 
-    fun authUserNotNullDestination(): String {
-        return if (auth.currentUser != null) {
-            sendNotificationToken()
-            loadUserRooms()
-            Screen.HOME.name
-        } else {
-            Screen.SIGNIN.name
-        }
-    }
+
 
     fun addNewUser(
         nav: NavHostController,
@@ -106,14 +102,13 @@ class ChatViewModel(private val application: Application) :
 
     fun createNewRoom(
         hostState: SnackbarHostState,
-        scope: CoroutineScope,
+
         name: String
     ) {
         println("CREATE NEW ROOM WORKED")
         CoroutineScope(Dispatchers.IO).launch {
             remoteRepository.createNewRoom(
                 hostState,
-                scope,
                 name,
                 creatorId = auth.uid.toString()
             )
@@ -170,74 +165,23 @@ class ChatViewModel(private val application: Application) :
     }
 
     fun loadUserRooms() {
-        Log.d("USERS_LOADING_API", "started")
-        val gson = Gson()
-        remoteRepository.api.getUserRooms(auth.uid.toString())
-            .enqueue(object : Callback<ResponseBody> {
-                override fun onResponse(
-                    call: Call<ResponseBody>,
-                    response: Response<ResponseBody>
-                ) {
-                    //CoroutineScope(Dispatchers.IO).launch{ deleteAllRooms()}
-                    response.body()?.string()?.let {
-                        val rooms = gson.fromJson(it, Array<Room>::class.java).asList()
-                        Log.d("USERS_LOADING_API", rooms.toString())
-                        CoroutineScope(Dispatchers.IO).launch {
-                            insertRoomsToLocalDb(rooms)
-                            val res = async { getRoomsFromLocalDb() }
-                            withContext(Dispatchers.Main) {
-                                userRoomList.value = res.await()
-                            }
-
-                            Log.d("USERS_LOADING_FINAL", userRoomList.value.toString())
-                        }
-
-                    }
-                }
-
-                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        val res = async { getRoomsFromLocalDb() }
-                        withContext(Dispatchers.Main) {
-                            userRoomList.value = res.await()
-                        }
-
-                        Log.d("USERS_LOADING_FINAL", userRoomList.value.toString())
-                    }
-                }
-            })
-
-
+        isHomeScreenReady.value = false
+        Log.d("LOAD_USER_ROOMS", "EORKED")
+        remoteRepository.loadUserRooms() {
+            isHomeScreenReady.value = true
+        }
     }
 
     fun signOut() {
         auth.signOut()
 
-        CoroutineScope(Dispatchers.IO).launch{ deleteAllRooms()}
+        //CoroutineScope(Dispatchers.IO).launch{ deleteAllRooms()}
 
 
 
     }
 
-    private suspend fun insertRoomsToLocalDb(rooms: List<Room>) {
-        //RoomsDatabase(getApplication()).roomDao().deleteAllRooms()
-        Log.d("USERS_LOADING_INTO_DB", rooms.toString())
-        RoomsDatabase(getApplication()).roomDao().insertRooms(rooms)
-    }
-    private suspend fun deleteAllRooms() {
-        Log.d("USERS_DELETED", "_______________________")
-        RoomsDatabase(getApplication()).roomDao().deleteAllRooms()
-    }
 
-    private suspend fun getRoomsFromLocalDb(): SnapshotStateList<Room> {
-        //RoomsDatabase(getApplication()).roomDao().deleteAllRooms()
-        Log.d(
-            "USERS_LOADING_FROM_DB",
-            RoomsDatabase(getApplication()).roomDao().getAllRooms().toString()
-        )
-
-        return RoomsDatabase(getApplication()).roomDao().getAllRooms().toMutableStateList()
-    }
 
     fun joinRoom(hostState: SnackbarHostState,id: String) {
         CoroutineScope(Dispatchers.IO).launch {
@@ -262,12 +206,18 @@ class ChatViewModel(private val application: Application) :
     }
 
     fun loadMessagesFromRoom(hostState: SnackbarHostState,id: String) {
+        isChatReady.value = false
         CoroutineScope(Dispatchers.IO).launch {
-            remoteRepository.getMessagesFromRoom(hostState, id)
+            remoteRepository.getMessagesFromRoom(hostState, id) {
+                isChatReady.value = it
+            }
         }
     }
     fun getMessages(): MutableLiveData<MutableList<MessageDto>> {
         return RemoteRepository.messages
+    }
+    fun getUserRooms(): MutableLiveData<List<Room>> {
+        return remoteRepository.userRoomList
     }
 
 

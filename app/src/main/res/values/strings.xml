@@ -8,6 +8,8 @@
     <string name="phone_number_hint">Phone number</string>
     <string name="sign_up_to_foxify">Sign Up to Foxify</string>
     <string name="welcome_text">Welcome to Foxify</string>
+    <string name="settings_app_bar_text">Settings</string>
+    <string name="home_screen_app_bar_text">Chats</string>
 
 
 </resources>
