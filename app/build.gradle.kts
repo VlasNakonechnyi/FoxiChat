@@ -71,6 +71,7 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
     implementation(libs.firebase.messaging.ktx)
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(files("C:\\Users\\VlasN\\Documents\\spotify-app-remote-release-0.8.0.aar"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -99,6 +100,7 @@ dependencies {
     // ************* Retrofit2  ***************
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     // ************* Gson       ***************
+
     implementation ("com.google.code.gson:gson:2.10.1")
     implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("androidx.compose.material:material-icons-core:1.5.4")
@@ -116,4 +118,5 @@ dependencies {
     implementation("androidx.compose.material:material:1.5.4")
     implementation ("androidx.compose.runtime:runtime-livedata:1.5.4")
     implementation ("com.github.orioneee:ctm:1.0.6")
+    implementation ("com.spotify.android:auth:1.2.5")
 }

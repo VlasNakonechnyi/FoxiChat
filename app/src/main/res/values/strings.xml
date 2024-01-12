@@ -10,6 +10,11 @@
     <string name="welcome_text">Welcome to Foxify</string>
     <string name="settings_app_bar_text">Settings</string>
     <string name="home_screen_app_bar_text">Chats</string>
+    <string name="text_button_create_room">Create new room</string>
+    <string name="cancel">Cancel</string>
+    <string name="text_themes">Themes</string>
+    <string name="text_join">Join</string>
+    <string name="text_already_in_room">You are in</string>
 
 
 </resources>

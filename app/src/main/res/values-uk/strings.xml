@@ -1,4 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">JetpackComposeEx</string>
+    <string name="email_hint">Електронна адреса</string>
+    <string name="password_hint">Пароль</string>
+    <string name="username_hint">Ім\'я користувача</string>
+    <string name="phone_number_hint">Номер телефону</string>
+    <string name="sign_up_to_foxify">Реєструйтеся в Foxify</string>
+    <string name="welcome_text">Ласкаво просимо</string>
+    <string name="settings_app_bar_text">Налаштування</string>
+    <string name="home_screen_app_bar_text">Чати</string>
+    <string name="text_button_create_room">Створити чат</string>
+    <string name="cancel">Скасувати</string>
+    <string name="text_already_in_room">Ви тут є</string>
+    <string name="text_join">Приєднатись</string>
+    <string name="text_themes">Теми</string>
 </resources>

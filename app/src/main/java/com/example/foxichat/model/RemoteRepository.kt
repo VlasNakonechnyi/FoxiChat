@@ -34,7 +34,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 
 class RemoteRepository(
-    val context: Context
+    private val context: Context
 ) {
 
     val Context.application: Application
@@ -42,11 +42,13 @@ class RemoteRepository(
 
     val TAG = "REMOTE_REPO"
     private val retrofit = RetrofitClient.getClient()
-    val api: ApiFactory = retrofit.create(ApiFactory::class.java)
-    val lastMessage: MutableLiveData<MutableList<MessageDto>> by lazy {
-        MutableLiveData<MutableList<MessageDto>>()
-    }
+    private val api: ApiFactory = retrofit.create(ApiFactory::class.java)
+
+
     val userRoomList: MutableLiveData<List<Room>> by lazy {
+        MutableLiveData<List<Room>>()
+    }
+    val roomsList: MutableLiveData<List<Room>> by lazy {
         MutableLiveData<List<Room>>()
     }
 
@@ -329,7 +331,7 @@ class RemoteRepository(
                     }
                 }
 
-                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                override fun onFailure(vcall: Call<ResponseBody>, t: Throwable) {
                     CoroutineScope(Dispatchers.IO).launch {
                         val res = async { getRoomsFromLocalDb() }
                         withContext(Dispatchers.Main) {
@@ -342,6 +344,26 @@ class RemoteRepository(
             })
 
 
+    }
+    fun loadAllRooms(onReadyChange: (Boolean) -> Unit) {
+        val gson = Gson()
+        api.getAllRooms().enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(
+                call: Call<ResponseBody>,
+                response: Response<ResponseBody>
+            ) {
+                response.body()?.string()?.let {
+                    val rooms = gson.fromJson(it, Array<Room>::class.java).asList()
+                    println("ROOMS: $rooms")
+                    roomsList.value = rooms
+                    onReadyChange(true)
+                }
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                onReadyChange(true)
+            }
+        })
     }
     private suspend fun insertRoomsToLocalDb(rooms: List<Room>) {
         //RoomsDatabase(getApplication()).roomDao().deleteAllRooms()

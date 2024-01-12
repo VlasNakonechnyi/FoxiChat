@@ -29,17 +29,15 @@ import retrofit2.Response
 class ChatViewModel(private val application: Application) :
     AndroidViewModel(application) {
     private val remoteRepository = RemoteRepository(application.applicationContext)
+
     companion object {
 
         const val PASSWORD_LENGTH = 6
 
 
     }
- //   private val remoteRepository = RemoteRepository()
+    //   private val remoteRepository = RemoteRepository()
 
-    val roomsList: MutableLiveData<List<Room>> by lazy {
-        MutableLiveData<List<Room>>()
-    }
 
     val isChatReady by lazy {
         MutableLiveData<Boolean>()
@@ -47,7 +45,9 @@ class ChatViewModel(private val application: Application) :
     val isHomeScreenReady by lazy {
         MutableLiveData<Boolean>()
     }
-
+    val isAllRoomListReady by lazy {
+        MutableLiveData<Boolean>()
+    }
 
 
     // *********************** INPUT VALIDATION *******************************
@@ -55,6 +55,7 @@ class ChatViewModel(private val application: Application) :
     fun isMessageFromMe(msg: MessageDto): Boolean {
         return msg.authorId == auth.uid.toString()
     }
+
     fun validatePasswordField(p: String): Boolean {
         return !p.contains(' ') && p.length >= PASSWORD_LENGTH
     }
@@ -74,7 +75,6 @@ class ChatViewModel(private val application: Application) :
             android.util.Patterns.EMAIL_ADDRESS.matcher(s).matches()
         }
     }
-
 
 
     fun addNewUser(
@@ -134,67 +134,51 @@ class ChatViewModel(private val application: Application) :
 
     }
 
-    fun getAllRooms() {
-        CoroutineScope(Dispatchers.IO).launch {
-            loadAllRooms()
-        }
-    }
+    fun loadAllRooms() {
+        isAllRoomListReady.value = false
 
-    private fun loadAllRooms() {
-        CoroutineScope(Dispatchers.IO).launch {
-            val gson = Gson()
-            remoteRepository.api.getAllRooms().enqueue(object : Callback<ResponseBody> {
-                override fun onResponse(
-                    call: Call<ResponseBody>,
-                    response: Response<ResponseBody>
-                ) {
-                    response.body()?.string()?.let {
-                        val rooms = gson.fromJson(it, Array<Room>::class.java).asList()
-                        Log.d("", rooms.toString())
-                        roomsList.value = rooms
-                    }
-                }
-
-                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                    // TODO
-                }
-            })
-
+        remoteRepository.loadAllRooms {
+            isAllRoomListReady.value = true
         }
 
     }
+
 
     fun loadUserRooms() {
         isHomeScreenReady.value = false
-        Log.d("LOAD_USER_ROOMS", "EORKED")
-        remoteRepository.loadUserRooms() {
+
+        remoteRepository.loadUserRooms {
             isHomeScreenReady.value = true
         }
     }
 
     fun signOut() {
         auth.signOut()
-
-        //CoroutineScope(Dispatchers.IO).launch{ deleteAllRooms()}
-
-
-
     }
 
 
-
-    fun joinRoom(hostState: SnackbarHostState,id: String) {
+    fun joinRoom(hostState: SnackbarHostState, id: String) {
         CoroutineScope(Dispatchers.IO).launch {
             remoteRepository.addUserToRoom(
-                hostState= hostState,
+                hostState = hostState,
                 roomId = id,
-                uid = auth.uid.toString())
+                uid = auth.uid.toString()
+            )
         }
     }
 
     fun sendMessage(body: String, chatId: String) {
         println(auth.currentUser?.displayName)
-        val messageDto = auth.currentUser?.displayName?.let { MessageDto("0".repeat(24),auth.uid.toString(), authorName = it, chatId, body, remoteRepository.timeToDbFormat()) }
+        val messageDto = auth.currentUser?.displayName?.let {
+            MessageDto(
+                "0".repeat(24),
+                auth.uid.toString(),
+                authorName = it,
+                chatId,
+                body,
+                remoteRepository.timeToDbFormat()
+            )
+        }
         remoteRepository.sendMessage(messageDto)
     }
 
@@ -205,7 +189,7 @@ class ChatViewModel(private val application: Application) :
 
     }
 
-    fun loadMessagesFromRoom(hostState: SnackbarHostState,id: String) {
+    fun loadMessagesFromRoom(hostState: SnackbarHostState, id: String) {
         isChatReady.value = false
         CoroutineScope(Dispatchers.IO).launch {
             remoteRepository.getMessagesFromRoom(hostState, id) {
@@ -213,15 +197,19 @@ class ChatViewModel(private val application: Application) :
             }
         }
     }
+
     fun getMessages(): MutableLiveData<MutableList<MessageDto>> {
         return RemoteRepository.messages
     }
+
     fun getUserRooms(): MutableLiveData<List<Room>> {
         return remoteRepository.userRoomList
     }
 
+    fun getAllRooms(): MutableLiveData<List<Room>> {
+        return remoteRepository.roomsList
 
-
+    }
 
 
 }

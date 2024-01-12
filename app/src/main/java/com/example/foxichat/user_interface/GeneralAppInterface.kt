@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -32,15 +34,18 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavHostController
+import com.example.foxichat.R
 import com.example.foxichat.navigation.BottomNavItems
 import com.example.foxichat.view_model.ChatViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -68,6 +73,8 @@ fun GeneralScaffold(
 
     var openAlertDialog by remember { mutableStateOf(false) }
 
+    val allRooms by viewModel.getAllRooms().observeAsState(listOf())
+
 
     when {
         openAlertDialog -> {
@@ -81,7 +88,7 @@ fun GeneralScaffold(
                     viewModel.createNewRoom(snackbarHostState, name = name)
                     openAlertDialog = false
                     showBottomSheet = false
-                    viewModel.loadUserRooms()
+
 
                 },
                 dialogTitle = "Create new room",
@@ -118,7 +125,7 @@ fun GeneralScaffold(
             FloatingActionButton(
                 onClick = {
 
-                    viewModel.getAllRooms()
+                    viewModel.loadAllRooms()
                     showBottomSheet = true
 
                 },
@@ -195,15 +202,27 @@ fun GeneralScaffold(
                                 }
                             }
                             ) {
-                                Text(text = "Cancel")
+                                Text(text = stringResource(id = R.string.cancel))
                             }
                             Button(onClick = {
                                 openAlertDialog = true
 
                             }) {
-                                Text(text = "Create new room")
+                                Text(text = stringResource(id = R.string.text_button_create_room))
                             }
 
+                        }
+                        LazyColumn (
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            items(allRooms) {
+                                RoomInJoinRoomList(
+                                    room = it,
+                                    viewModel = viewModel,
+                                    nav = navController,
+                                    snackbarHostState = snackbarHostState
+                                )
+                            }
                         }
 
 
