@@ -13,8 +13,6 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
@@ -38,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.foxichat.R
 import com.example.foxichat.view_model.ChatViewModel
+import com.example.foxichat.view_model.SpotifyViewModel
 import com.github.orioneee.ColorMode
 import com.github.orioneee.Ctm
 import com.github.orioneee.ThemeMode
@@ -47,14 +46,16 @@ import kotlin.math.min
 fun SettingsScreen(
     snackbarHostState: SnackbarHostState,
     navController: NavHostController,
-    viewModel: ChatViewModel
+    viewModel: ChatViewModel,
+    spotifyViewModel: SpotifyViewModel
 ) {
     GeneralScaffold(
         snackbarHostState = snackbarHostState,
         navController = navController,
         viewModel = viewModel,
         actions = {},
-        topAppBarText = stringResource(id = R.string.settings_app_bar_text)
+        topAppBarText = stringResource(id = R.string.settings_app_bar_text),
+        spotifyViewModel = SpotifyViewModel()
     ) {
         Column(
             modifier = Modifier

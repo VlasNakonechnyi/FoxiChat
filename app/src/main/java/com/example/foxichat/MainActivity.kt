@@ -2,7 +2,6 @@ package com.example.foxichat
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -23,13 +22,13 @@ import androidx.navigation.compose.rememberNavController
 import com.example.foxichat.navigation.NavigationHost
 import com.example.foxichat.ui.theme.JetpackComposeExTheme
 import com.example.foxichat.view_model.ChatViewModel
+import com.example.foxichat.view_model.SpotifyViewModel
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.spotify.android.appremote.api.ConnectionParams
 import com.spotify.android.appremote.api.Connector
 import com.spotify.android.appremote.api.SpotifyAppRemote
 import com.spotify.protocol.types.Track
-import com.spotify.sdk.android.auth.AccountsQueryParameters.CLIENT_ID
 import com.spotify.sdk.android.auth.AuthorizationClient
 import com.spotify.sdk.android.auth.AuthorizationRequest
 import com.spotify.sdk.android.auth.AuthorizationResponse
@@ -39,7 +38,7 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
     private val clientId = "b3eb571fe1634543ba9153b853cf5631"
     private val redirectUri = "http://localhost:3000/callback"
-    private var spotifyAppRemote: SpotifyAppRemote? = null
+
     companion object {
         const val FCM_CHANNEL_ID = "FCM_CHANNEL_ID"
     }
@@ -68,6 +67,9 @@ class MainActivity : ComponentActivity() {
         Locale.setDefault(locale)
         config.setLocale(locale)
 
+        val viewModel = ChatViewModel(application = application)
+        val spotifyViewModel = SpotifyViewModel()
+
         createConfigurationContext(config)
         resources.updateConfiguration(config, resources.displayMetrics)
         val fcmChannel =
@@ -77,7 +79,6 @@ class MainActivity : ComponentActivity() {
 
         manager.createNotificationChannel(fcmChannel)
         auth = Firebase.auth
-        val viewModel = ChatViewModel(application = application)
 
         askNotificationPermission()
         authenticateSpotify()
@@ -92,7 +93,7 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
 
                 ) {
-                    NavigationHost(scope, snackbarHostState, viewModel, navController)
+                    NavigationHost(scope, snackbarHostState, viewModel, spotifyViewModel, navController)
 
                 }
             }
@@ -106,18 +107,7 @@ class MainActivity : ComponentActivity() {
         trySpotify()
     }
 
-    private fun connected() {
-        spotifyAppRemote?.let {
-            // Play a playlist
-            val playlistURI = "spotify:playlist:37i9dQZF1DX2sUQwD7tbmL"
-            it.playerApi.play(playlistURI)
-            // Subscribe to PlayerState
-            it.playerApi.subscribeToPlayerState().setEventCallback {
-                val track: Track = it.track
-                Log.d("MainActivity", track.name + " by " + track.artist.name)
-            }
-        }
-    }
+
 
     override fun onStop() {
         super.onStop()
@@ -172,8 +162,9 @@ class MainActivity : ComponentActivity() {
             override fun onConnected(appRemote: SpotifyAppRemote) {
                 spotifyAppRemote = appRemote
                 Log.d("SPOTIFY_AUTH", "Connected! Yay!")
+                //spotifyViewModel.connected()
                 // Now you can start interacting with App Remote
-                connected()
+
             }
 
             override fun onFailure(throwable: Throwable) {
@@ -183,26 +174,26 @@ class MainActivity : ComponentActivity() {
         })
     }
 
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        Log.d("SPOTIFY_AUTH", "On new intent")
-        val uri = intent.data
-        if (uri != null) {
-            val response = AuthorizationResponse.fromUri(uri)
-
-            when (response.type) {
-                AuthorizationResponse.Type.TOKEN -> {
-                    trySpotify()
-                }
-                AuthorizationResponse.Type.ERROR -> {
-                    Log.d("SPOTIFY_AUTH", "Failed")
-                }
-                else -> {
-                    Log.d("SPOTIFY_AUTH", "Failed")
-                }
-            }
-        }
-    }
+//    override fun onNewIntent(intent: Intent) {
+//        super.onNewIntent(intent)
+//        Log.d("SPOTIFY_AUTH", "On new intent")
+//        val uri = intent.data
+//        if (uri != null) {
+//            val response = AuthorizationResponse.fromUri(uri)
+//
+//            when (response.type) {
+//                AuthorizationResponse.Type.TOKEN -> {
+//                    //trySpotify()
+//                }
+//                AuthorizationResponse.Type.ERROR -> {
+//                    Log.d("SPOTIFY_AUTH", "Failed")
+//                }
+//                else -> {
+//                    Log.d("SPOTIFY_AUTH", "Failed")
+//                }
+//            }
+//        }
+//    }
 }
 
 

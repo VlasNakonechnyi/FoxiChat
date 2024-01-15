@@ -5,8 +5,7 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.painterResource
-import com.example.foxichat.R
+import com.example.foxichat.user_interface.AnimatedSpotifyIcon
 
 sealed class BottomNavItems( val route: String, val icon: @Composable () -> Unit) {
     companion object {
@@ -26,10 +25,7 @@ sealed class BottomNavItems( val route: String, val icon: @Composable () -> Unit
     })
     //ToDo
     data object Spotify : BottomNavItems(route = "", {
-        Icon(
-            painter = painterResource(id = R.drawable.spoti_logo),
-            contentDescription = ""
-        )
+        AnimatedSpotifyIcon()
     })
 
 }

@@ -24,6 +24,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import com.example.foxichat.R
 import com.example.foxichat.view_model.ChatViewModel
+import com.example.foxichat.view_model.SpotifyViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
@@ -32,7 +33,8 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     snackbarHostState: SnackbarHostState,
     navController: NavHostController,
-    viewModel: ChatViewModel
+    viewModel: ChatViewModel,
+    spotifyViewModel: SpotifyViewModel
 ) {
     LaunchedEffect(Unit) {
         viewModel.loadUserRooms()
@@ -56,7 +58,8 @@ fun HomeScreen(
         navController = navController,
         viewModel = viewModel,
         actions = {},
-        topAppBarText = stringResource(id = R.string.home_screen_app_bar_text)
+        topAppBarText = stringResource(id = R.string.home_screen_app_bar_text),
+        spotifyViewModel = spotifyViewModel
     ) {
         if (isReady) {
             Box(

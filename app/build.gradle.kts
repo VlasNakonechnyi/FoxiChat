@@ -119,4 +119,7 @@ dependencies {
     implementation ("androidx.compose.runtime:runtime-livedata:1.5.4")
     implementation ("com.github.orioneee:ctm:1.0.6")
     implementation ("com.spotify.android:auth:1.2.5")
+
+    implementation ("io.coil-kt:coil-compose:2.1.0")
+    implementation ("io.coil-kt:coil-gif:2.1.0")
 }

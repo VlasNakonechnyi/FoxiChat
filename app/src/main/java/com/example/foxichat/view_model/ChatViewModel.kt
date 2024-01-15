@@ -12,10 +12,6 @@ import com.example.foxichat.dto.Room
 import com.example.foxichat.dto.UserDto
 import com.example.foxichat.model.RemoteRepository
 import com.example.foxichat.navigation.Screen
-import com.spotify.sdk.android.auth.AccountsQueryParameters.CLIENT_ID
-import com.spotify.sdk.android.auth.AuthorizationClient
-import com.spotify.sdk.android.auth.AuthorizationRequest
-import com.spotify.sdk.android.auth.AuthorizationResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
