@@ -3,8 +3,6 @@ package com.example.foxichat.view_model
 import android.app.Application
 import android.util.Log
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavHostController
@@ -13,18 +11,15 @@ import com.example.foxichat.dto.MessageDto
 import com.example.foxichat.dto.Room
 import com.example.foxichat.dto.UserDto
 import com.example.foxichat.model.RemoteRepository
-import com.example.foxichat.model.RoomsDatabase
 import com.example.foxichat.navigation.Screen
-import com.google.gson.Gson
+import com.spotify.sdk.android.auth.AccountsQueryParameters.CLIENT_ID
+import com.spotify.sdk.android.auth.AuthorizationClient
+import com.spotify.sdk.android.auth.AuthorizationRequest
+import com.spotify.sdk.android.auth.AuthorizationResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.ResponseBody
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+
 
 class ChatViewModel(private val application: Application) :
     AndroidViewModel(application) {
@@ -210,6 +205,9 @@ class ChatViewModel(private val application: Application) :
         return remoteRepository.roomsList
 
     }
+
+    // *************************** SPOTIFY *****************************
+
 
 
 }
