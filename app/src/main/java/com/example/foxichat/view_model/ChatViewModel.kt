@@ -20,14 +20,11 @@ import kotlinx.coroutines.launch
 class ChatViewModel(private val application: Application) :
     AndroidViewModel(application) {
     private val remoteRepository = RemoteRepository(application.applicationContext)
-
     companion object {
-
         const val PASSWORD_LENGTH = 6
-
-
     }
     //   private val remoteRepository = RemoteRepository()
+
 
 
     val isChatReady by lazy {
@@ -66,7 +63,7 @@ class ChatViewModel(private val application: Application) :
             android.util.Patterns.EMAIL_ADDRESS.matcher(s).matches()
         }
     }
-
+    // ******************* FUNCTIONALITY ***************************
 
     fun addNewUser(
         nav: NavHostController,
@@ -177,7 +174,6 @@ class ChatViewModel(private val application: Application) :
         CoroutineScope(Dispatchers.IO).launch {
             remoteRepository.sendNotificationToken(auth.uid.toString())
         }
-
     }
 
     fun loadMessagesFromRoom(hostState: SnackbarHostState, id: String) {
@@ -199,11 +195,6 @@ class ChatViewModel(private val application: Application) :
 
     fun getAllRooms(): MutableLiveData<List<Room>> {
         return remoteRepository.roomsList
-
     }
-
-    // *************************** SPOTIFY *****************************
-
-
 
 }

@@ -144,7 +144,10 @@ fun NavigationHost(
                     animationSpec = tween(300, easing = EaseIn)
                 )
             }) {
-            SpotifyScreen(viewMode = spotifyViewModel)
+            SpotifyScreen( snackbarHostState = snackbarHostState,
+                navController = navController,
+                viewModel = viewModel,
+                spotifyViewModel = spotifyViewModel)
         }
         composable(Screen.TEST_SCREEN.name) {
             screens.TestNotificationScreen()

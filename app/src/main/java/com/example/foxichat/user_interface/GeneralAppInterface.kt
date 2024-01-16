@@ -106,9 +106,7 @@ fun GeneralScaffold(
 
     val allRooms by viewModel.getAllRooms().observeAsState(listOf())
     val currentSongDetails by spotifyViewModel.currentSongDetails.observeAsState("")
-    var isPlaying by remember {
-        mutableStateOf(false)
-    }
+    val isPlaying by spotifyViewModel.isPlaying.observeAsState(false)
 
     when {
         openAlertDialog -> {
@@ -193,8 +191,7 @@ fun GeneralScaffold(
                                 Icon(modifier = Modifier.size(30.dp),painter = painterResource(id = R.drawable.back), contentDescription = "")
                             }
                             IconButton(onClick = {
-                                if (isPlaying) spotifyViewModel.pause() else spotifyViewModel.play()
-                                isPlaying = !isPlaying }
+                                if (isPlaying) spotifyViewModel.pause() else spotifyViewModel.play() }
                             ) {
                                 Icon(modifier = Modifier.size(30.dp),
                                     painter = if (isPlaying) painterResource(id = R.drawable.pause) else painterResource(id = R.drawable.play),

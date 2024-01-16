@@ -81,7 +81,7 @@ class MainActivity : ComponentActivity() {
         auth = Firebase.auth
 
         askNotificationPermission()
-        authenticateSpotify()
+
 
         setContent {
             val scope = rememberCoroutineScope()
@@ -168,8 +168,7 @@ class MainActivity : ComponentActivity() {
             }
 
             override fun onFailure(throwable: Throwable) {
-                Log.e("SPOTIFY_AUTH", throwable.message, throwable)
-                // Something went wrong when attempting to connect! Handle errors here
+                authenticateSpotify()
             }
         })
     }

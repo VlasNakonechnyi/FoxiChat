@@ -4,21 +4,34 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.foxichat.MainActivity
+import com.example.foxichat.model.SpotifyRepository
 import com.example.foxichat.spotifyAppRemote
+import com.spotify.android.appremote.api.ContentApi
 import com.spotify.android.appremote.api.SpotifyAppRemote
 import com.spotify.protocol.types.ImageUri
+import com.spotify.protocol.types.ListItem
+import com.spotify.protocol.types.ListItems
 import com.spotify.protocol.types.Track
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class SpotifyViewModel : ViewModel(){
 
-
+    val repo = SpotifyRepository()
     val currentSongDetails by lazy {
         MutableLiveData<String>()
+    }
+
+    val isPlaying by lazy {
+        MutableLiveData<Boolean>()
     }
 
     val currentSongImageUrl by lazy {
         MutableLiveData<ImageUri>()
     }
+
+
 
 //    fun connect() {
 //
@@ -59,30 +72,21 @@ fun connected() {
 }
 
     fun previous() {
-        spotifyAppRemote?.let {
-
-            it.playerApi.skipPrevious()
-
-        }
+        spotifyAppRemote?.playerApi?.skipPrevious()
     }
     fun next() {
-        spotifyAppRemote?.let {
-
-            it.playerApi.skipNext()
-
-        }
+        spotifyAppRemote?.playerApi?.skipNext()
     }
 
     fun pause() {
         spotifyAppRemote?.let {
-
+            isPlaying.value = false
             it.playerApi.pause()
-
         }
     }
     fun play() {
         spotifyAppRemote?.let {
-
+            isPlaying.value = true
             it.playerApi.resume()
             it.playerApi.subscribeToPlayerState().setEventCallback {
                 val track: Track = it.track
@@ -93,4 +97,26 @@ fun connected() {
         }
     }
 
+    fun loadSpotifyRecommendedContent() {
+        CoroutineScope(Dispatchers.IO).launch {
+            repo.loadSpotifyContent()
+        }
+
+    }
+    fun loadSpotifyRecommendedContentChildren(item: ListItem) {
+        CoroutineScope(Dispatchers.IO).launch {
+            repo.loadChildren(item)
+        }
+
+    }
+    fun loadImage(uri: ImageUri) {
+        uri.raw?.let { Log.d("SPOTI_", it) }
+        CoroutineScope(Dispatchers.IO).launch {
+            repo.getImageFromUri(uri)
+        }
+    }
+
+    fun getImage() = repo.image
+    fun getSpotifyContent() = repo.recommendedContent
+    fun getSpotifyContentChildren() = repo.recommendedContentChildren
 }

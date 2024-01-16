@@ -24,7 +24,7 @@ sealed class BottomNavItems( val route: String, val icon: @Composable () -> Unit
         )
     })
     //ToDo
-    data object Spotify : BottomNavItems(route = "", {
+    data object Spotify : BottomNavItems(route = Screen.SPOTIFY_SCREEN.name, {
         AnimatedSpotifyIcon()
     })
 
