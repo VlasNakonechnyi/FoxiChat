@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -68,7 +70,7 @@ class MainActivity : ComponentActivity() {
         config.setLocale(locale)
 
         val viewModel = ChatViewModel(application = application)
-        val spotifyViewModel = SpotifyViewModel()
+
 
         createConfigurationContext(config)
         resources.updateConfiguration(config, resources.displayMetrics)
@@ -84,6 +86,9 @@ class MainActivity : ComponentActivity() {
 
 
         setContent {
+            val spotifyViewModel by remember {
+                mutableStateOf(SpotifyViewModel())
+            }
             val scope = rememberCoroutineScope()
             val snackbarHostState = remember { SnackbarHostState() }
             val navController = rememberNavController()

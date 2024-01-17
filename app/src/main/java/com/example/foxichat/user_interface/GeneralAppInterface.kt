@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.BottomNavigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.BottomAppBarDefaults
@@ -36,6 +37,10 @@ import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarDefaults
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemColors
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -94,10 +99,6 @@ fun GeneralScaffold(
     actions: @Composable () -> Unit,
     body: @Composable () -> Unit,
 ) {
-    LaunchedEffect(Unit) {
-        spotifyViewModel.connected()
-    }
-
 
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
@@ -127,6 +128,7 @@ fun GeneralScaffold(
                 icon = Icons.Outlined.Add
             )
         }
+
         else -> {}
     }
     Scaffold(
@@ -161,7 +163,7 @@ fun GeneralScaffold(
                         .clip(RoundedCornerShape(30.dp)),
                     color = MaterialTheme.colorScheme.primary
                 ) {
-                    Column (
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
 
@@ -171,11 +173,13 @@ fun GeneralScaffold(
                                 .fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceAround
                         ) {
-                            Text(
-                                modifier = Modifier.padding(start = 20.dp),
-                                text = currentSongDetails,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
+                            currentSongDetails?.let {
+                                Text(
+                                    modifier = Modifier.padding(start = 20.dp),
+                                    text = it,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
                         }
                         Row(
                             modifier = Modifier
@@ -183,25 +187,46 @@ fun GeneralScaffold(
                             horizontalArrangement = Arrangement.SpaceAround
                         ) {
                             IconButton(
-                                onClick = {  }
+                                onClick = { }
                             ) {
-                                Icon(modifier = Modifier.size(30.dp),painter = painterResource(id = R.drawable.music), contentDescription = "")
+                                Icon(
+                                    modifier = Modifier.size(30.dp),
+                                    painter = painterResource(id = R.drawable.music),
+                                    contentDescription = ""
+                                )
                             }
                             IconButton(onClick = { spotifyViewModel.previous() }) {
-                                Icon(modifier = Modifier.size(30.dp),painter = painterResource(id = R.drawable.back), contentDescription = "")
+                                Icon(
+                                    modifier = Modifier.size(30.dp),
+                                    painter = painterResource(id = R.drawable.back),
+                                    contentDescription = ""
+                                )
                             }
                             IconButton(onClick = {
-                                if (isPlaying) spotifyViewModel.pause() else spotifyViewModel.play() }
+                                if (isPlaying) spotifyViewModel.pause() else spotifyViewModel.play()
+                            }
                             ) {
-                                Icon(modifier = Modifier.size(30.dp),
-                                    painter = if (isPlaying) painterResource(id = R.drawable.pause) else painterResource(id = R.drawable.play),
-                                    contentDescription = "")
+                                Icon(
+                                    modifier = Modifier.size(30.dp),
+                                    painter = if (isPlaying) painterResource(id = R.drawable.pause) else painterResource(
+                                        id = R.drawable.play
+                                    ),
+                                    contentDescription = ""
+                                )
                             }
                             IconButton(onClick = { spotifyViewModel.next() }) {
-                                Icon(modifier = Modifier.size(30.dp),painter = painterResource(id = R.drawable.next), contentDescription = "")
+                                Icon(
+                                    modifier = Modifier.size(30.dp),
+                                    painter = painterResource(id = R.drawable.next),
+                                    contentDescription = ""
+                                )
                             }
                             IconButton(onClick = { /*TODO*/ }) {
-                                Icon(modifier = Modifier.size(30.dp),painter = painterResource(id = R.drawable.shuffle), contentDescription = "")
+                                Icon(
+                                    modifier = Modifier.size(30.dp),
+                                    painter = painterResource(id = R.drawable.shuffle),
+                                    contentDescription = ""
+                                )
                             }
 
                         }
@@ -231,34 +256,34 @@ fun GeneralScaffold(
         bottomBar = {
 
             NavigationBar(
-                modifier = Modifier
+                modifier = Modifier.clip(CircleShape)
+                //backgroundColor = MaterialTheme.colorScheme.primary
+               // containerColor = MaterialTheme.colorScheme.primary,
 
-                    .clip(RoundedCornerShape(30.dp))
-                    .height(50.dp),
-                containerColor = MaterialTheme.colorScheme.primary
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceAround
                 ) {
-                    BottomNavItems.bottomNavItems.forEach {
-                        IconButton(onClick = {
-                            navController.navigate(it.route) {
-                                popUpTo(navController.graph.startDestinationId) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
 
+                BottomNavItems.bottomNavItems.forEach {
+                    NavigationBarItem(
+                        selected = navController.currentDestination?.route == it.route,
+                        icon = it.icon,
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                            unselectedIconColor = MaterialTheme.colorScheme.secondary
+                        ),
+                        onClick = {
+                        navController.navigate(it.route) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
                             }
-                        }) {
-                            it.icon()
-                        }
-                    }
-                }
+                            launchSingleTop = true
+                            restoreState = true
 
+                        }
+                    })
+                }
             }
+
+
         }
     ) {
         Box(
@@ -286,11 +311,12 @@ fun GeneralScaffold(
                             horizontalArrangement = Arrangement.SpaceAround
                         ) {
                             TextButton(onClick = {
-                                CoroutineScope(Dispatchers.Main).launch { sheetState.hide() }.invokeOnCompletion {
-                                    if (!sheetState.isVisible) {
-                                        showBottomSheet = false
+                                CoroutineScope(Dispatchers.Main).launch { sheetState.hide() }
+                                    .invokeOnCompletion {
+                                        if (!sheetState.isVisible) {
+                                            showBottomSheet = false
+                                        }
                                     }
-                                }
                             }
                             ) {
                                 Text(text = stringResource(id = R.string.cancel))
@@ -303,7 +329,7 @@ fun GeneralScaffold(
                             }
 
                         }
-                        LazyColumn (
+                        LazyColumn(
                             modifier = Modifier.fillMaxSize()
                         ) {
                             items(allRooms) {
@@ -323,9 +349,10 @@ fun GeneralScaffold(
         }
     }
 }
+
 @Composable
 fun AnimatedSpotifyIcon() {
-    
+
     val transition = rememberInfiniteTransition()
     val scale by transition.animateFloat(
         initialValue = 0.8f,
@@ -337,8 +364,10 @@ fun AnimatedSpotifyIcon() {
             repeatMode = RepeatMode.Reverse
         ), label = ""
     )
-    Icon(painter = painterResource(
-        id = R.drawable.spotify),
+    Icon(
+        painter = painterResource(
+            id = R.drawable.spotify
+        ),
         contentDescription = "",
         modifier = Modifier
             .graphicsLayer(

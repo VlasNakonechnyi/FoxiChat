@@ -42,6 +42,7 @@ fun SpotifyScreen(
 
     LaunchedEffect(Unit) {
         spotifyViewModel.loadSpotifyRecommendedContent()
+        spotifyViewModel.connected()
     }
 
     GeneralScaffold(
@@ -60,7 +61,7 @@ fun SpotifyScreen(
         ) {
             if (recommendedContent != null) {
                 items(recommendedContent!!.items) {
-                    spotifyViewModel.loadSpotifyRecommendedContentChildren(it)
+
                     ContentItem(viewModel = spotifyViewModel, item = it)
                 }
             }

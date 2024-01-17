@@ -42,23 +42,23 @@ fun NavigationHost(
     NavHost(
         navController = navController,
         startDestination = startDest,
-
-        ) {
+        enterTransition = {
+            fadeIn(
+                animationSpec = tween(100, easing = EaseIn)
+            )
+        },
+        exitTransition = {
+            fadeOut(
+                animationSpec = tween(100, easing = EaseIn)
+            )
+        }
+    ) {
 
         val screens = Screens(navController, viewModel, snackbarHostState)
         composable(
             route = Screen.HOME.name,
-            enterTransition = {
-                fadeIn(
-                    animationSpec = tween(100, easing = EaseIn)
-                )
-            },
-            exitTransition = {
-                fadeOut(
-                    animationSpec = tween(100, easing = EaseIn)
-                )
-            }
-        ) {
+
+            ) {
 
             HomeScreen(
                 snackbarHostState = snackbarHostState,
@@ -69,63 +69,29 @@ fun NavigationHost(
         }
         composable(
             route = Screen.SIGNUP.name,
-            enterTransition = {
-                fadeIn(
-                    animationSpec = tween(300, easing = EaseIn)
-                )
-            },
-            exitTransition = {
-                fadeOut(
-                    animationSpec = tween(300, easing = EaseIn)
-                )
-            }
+
             ) {
             screens.SignUpScreen(scope, snackbarHostState)
 
         }
         composable(
             Screen.SIGNIN.name,
-            enterTransition = {
-                fadeIn(
-                    animationSpec = tween(300, easing = EaseIn)
-                )
-            },
-            exitTransition = {
-                fadeOut(
-                    animationSpec = tween(300, easing = EaseIn)
-                )
-            }
-        ) {
+
+            ) {
             screens.SignInScreen()
             isNavBarVisible.value = false
         }
-        composable(Screen.CHAT_SCREEN.name + "/{chat_id}/{chat_name}",
-            enterTransition = {
-                fadeIn(
-                    animationSpec = tween(300, easing = EaseIn)
-                )
-            },
-            exitTransition = {
-                fadeOut(
-                    animationSpec = tween(300, easing = EaseIn)
-                )
-            }) {
+        composable(
+            Screen.CHAT_SCREEN.name + "/{chat_id}/{chat_name}",
+        ) {
             val chatId = it.arguments?.getString("chat_id")
             val chatName = it.arguments?.getString("chat_name")
             screens.ChatScreen(chatId, chatName)
 
         }
-        composable(Screen.SETTINGS_SCREEN.name,
-            enterTransition = {
-                fadeIn(
-                    animationSpec = tween(300, easing = EaseIn)
-                )
-            },
-            exitTransition = {
-                fadeOut(
-                    animationSpec = tween(300, easing = EaseIn)
-                )
-            }) {
+        composable(
+            Screen.SETTINGS_SCREEN.name,
+        ) {
             SettingsScreen(
                 snackbarHostState = snackbarHostState,
                 navController = navController,
@@ -133,21 +99,15 @@ fun NavigationHost(
                 spotifyViewModel = spotifyViewModel
             )
         }
-        composable(Screen.SPOTIFY_SCREEN.name,
-            enterTransition = {
-                fadeIn(
-                    animationSpec = tween(300, easing = EaseIn)
-                )
-            },
-            exitTransition = {
-                fadeOut(
-                    animationSpec = tween(300, easing = EaseIn)
-                )
-            }) {
-            SpotifyScreen( snackbarHostState = snackbarHostState,
+        composable(
+            Screen.SPOTIFY_SCREEN.name,
+        ) {
+            SpotifyScreen(
+                snackbarHostState = snackbarHostState,
                 navController = navController,
                 viewModel = viewModel,
-                spotifyViewModel = spotifyViewModel)
+                spotifyViewModel = spotifyViewModel
+            )
         }
         composable(Screen.TEST_SCREEN.name) {
             screens.TestNotificationScreen()

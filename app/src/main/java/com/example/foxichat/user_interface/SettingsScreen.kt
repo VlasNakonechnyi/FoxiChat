@@ -21,6 +21,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,13 +50,16 @@ fun SettingsScreen(
     viewModel: ChatViewModel,
     spotifyViewModel: SpotifyViewModel
 ) {
+    LaunchedEffect(Unit) {
+        spotifyViewModel.connected()
+    }
     GeneralScaffold(
         snackbarHostState = snackbarHostState,
         navController = navController,
         viewModel = viewModel,
         actions = {},
         topAppBarText = stringResource(id = R.string.settings_app_bar_text),
-        spotifyViewModel = SpotifyViewModel()
+        spotifyViewModel = spotifyViewModel
     ) {
         Column(
             modifier = Modifier

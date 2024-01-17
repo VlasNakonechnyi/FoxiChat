@@ -3,22 +3,21 @@ package com.example.foxichat.view_model
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.foxichat.MainActivity
 import com.example.foxichat.model.SpotifyRepository
 import com.example.foxichat.spotifyAppRemote
-import com.spotify.android.appremote.api.ContentApi
-import com.spotify.android.appremote.api.SpotifyAppRemote
 import com.spotify.protocol.types.ImageUri
 import com.spotify.protocol.types.ListItem
-import com.spotify.protocol.types.ListItems
 import com.spotify.protocol.types.Track
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 class SpotifyViewModel : ViewModel(){
-
-    val repo = SpotifyRepository()
+ init {
+     println("VIEW_MODEL new instance")
+ }
+    private val repo = SpotifyRepository()
     val currentSongDetails by lazy {
         MutableLiveData<String>()
     }
@@ -56,8 +55,8 @@ class SpotifyViewModel : ViewModel(){
 fun connected() {
     spotifyAppRemote?.let {
         // Play a playlist
-      //  val playlistURI = it.playerApi.resume()
-       // it.playerApi.play(playlistURI)
+        //val playlistURI = it.playerApi.resume()
+        // it.playerApi.play(playlistURI)
         // Subscribe to PlayerState
         it.playerApi.subscribeToPlayerState().setEventCallback {
             val track: Track = it.track
@@ -83,27 +82,30 @@ fun connected() {
             isPlaying.value = false
             it.playerApi.pause()
         }
+        connected()
     }
     fun play() {
         spotifyAppRemote?.let {
             isPlaying.value = true
             it.playerApi.resume()
-            it.playerApi.subscribeToPlayerState().setEventCallback {
-                val track: Track = it.track
-                currentSongDetails.value = "${track.name} by ${track.artist.name}"
-                currentSongImageUrl.value = track.imageUri
-                Log.d("PLAYING_TRACK", track.name + " by " + track.artist.name)
-            }
+            connected()
         }
     }
 
     fun loadSpotifyRecommendedContent() {
         CoroutineScope(Dispatchers.IO).launch {
-            repo.loadSpotifyContent()
+            val res = async {repo.loadSpotifyContent()}
+            res.await()
+            if (getSpotifyContent().value != null) {
+                for (item in getSpotifyContent().value!!.items) {
+                    loadSpotifyRecommendedContentChildren(item)
+                }
+            }
         }
 
+
     }
-    fun loadSpotifyRecommendedContentChildren(item: ListItem) {
+    private fun loadSpotifyRecommendedContentChildren(item: ListItem) {
         CoroutineScope(Dispatchers.IO).launch {
             repo.loadChildren(item)
         }
