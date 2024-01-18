@@ -11,62 +11,61 @@ import com.spotify.protocol.types.Track
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.sql.Time
 
 class SpotifyViewModel : ViewModel(){
  init {
      println("VIEW_MODEL new instance")
+
  }
     private val repo = SpotifyRepository()
     val currentSongDetails by lazy {
         MutableLiveData<String>()
     }
+    companion object {
+        private const val SECONDS_IN_MINUTE = 60
 
-    val isPlaying by lazy {
-        MutableLiveData<Boolean>()
+        val isPlaying by lazy {
+            MutableLiveData<Boolean>()
+        }
     }
+    val playbackPosition = MutableLiveData<Int>()
+    val passedMins by lazy{ MutableLiveData<String>()}
+    val trackDuration = MutableLiveData<Int>()
 
     val currentSongImageUrl by lazy {
-        MutableLiveData<ImageUri>()
+        MutableLiveData<String>()
     }
 
-
-
-//    fun connect() {
-//
-//        val connectionParams = ConnectionParams.Builder(clientId)
-//            .setRedirectUri(redirectUri)
-//            .showAuthView(true)
-//            .build()
-//        SpotifyAppRemote.connect(context, connectionParams, object : Connector.ConnectionListener {
-//            override fun onConnected(appRemote: SpotifyAppRemote) {
-//                spotifyAppRemote = appRemote
-//                Log.d("SPOTIFY_AUTH", "Connected! Yay!")
-//                // Now you can start interacting with App Remote
-//
-//            }
-//
-//            override fun onFailure(throwable: Throwable) {
-//                Log.e("SPOTIFY_AUTH", throwable.message, throwable)
-//                // Something went wrong when attempting to connect! Handle errors here
-//            }
-//        })
-//    }
 fun connected() {
     spotifyAppRemote?.let {
-        // Play a playlist
-        //val playlistURI = it.playerApi.resume()
-        // it.playerApi.play(playlistURI)
-        // Subscribe to PlayerState
+
+
         it.playerApi.subscribeToPlayerState().setEventCallback {
             val track: Track = it.track
+            
             currentSongDetails.value = "${track.name} by ${track.artist.name}"
-            currentSongImageUrl.value = track.imageUri
+            isPlaying.value = !it.isPaused
+            trackDuration.postValue(track.duration.toInt())
+            playbackPosition.postValue(it.playbackPosition.toInt())
+            val totalSeconds = (playbackPosition.value ?: 0) / 1000
+            val minutes = totalSeconds / SECONDS_IN_MINUTE
+            val seconds = totalSeconds % SECONDS_IN_MINUTE
+            passedMins.value=(String.format("%02d:%02d", minutes, seconds))
+            Log.d("TIME_MINS" ,totalSeconds.toString())
+            Log.d("TIME_MINS" ,String.format("%02d:%02d", minutes, seconds))
+
+            loadImage(it.track.imageUri)
+
             Log.d("PLAYING_TRACK", track.name + " by " + track.artist.name)
         }
         //it.playerApi.pause()
 
+
     }
+
 
 }
 
@@ -79,16 +78,16 @@ fun connected() {
 
     fun pause() {
         spotifyAppRemote?.let {
-            isPlaying.value = false
+
             it.playerApi.pause()
         }
-        connected()
+     //   connected()
     }
     fun play() {
         spotifyAppRemote?.let {
-            isPlaying.value = true
+
             it.playerApi.resume()
-            connected()
+    //        connected()
         }
     }
 

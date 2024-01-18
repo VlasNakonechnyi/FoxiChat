@@ -113,6 +113,7 @@ fun ChildContent(viewModel: SpotifyViewModel, item: ListItem) {
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            println(item.imageUri.raw)
             AsyncImage(model = item.imageUri.raw, contentDescription = "", contentScale = ContentScale.Crop, modifier = Modifier.shadow(3.dp))
             Text(text = item.title)
 

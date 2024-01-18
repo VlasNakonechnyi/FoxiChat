@@ -125,35 +125,11 @@ fun LightDarkModeSwitch() {
 fun ColorMode(cm: ColorMode) {
     Surface(
         modifier = Modifier
-            .size(70.dp)
+            .size(75.dp)
             .clip(CircleShape)
             .clickable { Ctm.setColorMode(cm) },
         color = cm.theme.light.primary
     ) {
-        val colors = listOf(
-            cm.theme.light.primary,
-            cm.theme.light.secondary,
-            cm.theme.light.tertiary,
-            cm.theme.light.background
-        )
-
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val (width, height) = size
-            val radius = min(width, height) / 2
-            val center = Offset(width / 2, height / 2)
-
-            // Drawing each quarter
-            colors.forEachIndexed { index, color ->
-                drawArc(
-                    color = color,
-                    startAngle = 90f * index,
-                    sweepAngle = 90f,
-                    useCenter = true,
-                    topLeft = Offset(center.x - radius, center.y - radius),
-                    size = Size(radius * 2, radius * 2)
-                )
-            }
-        }
 
     }
 }
