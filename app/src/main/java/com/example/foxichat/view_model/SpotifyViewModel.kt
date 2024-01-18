@@ -21,6 +21,7 @@ class SpotifyViewModel : ViewModel(){
 
  }
     private val repo = SpotifyRepository()
+    private val timeDelta = 0
     val currentSongDetails by lazy {
         MutableLiveData<String>()
     }
@@ -41,33 +42,40 @@ class SpotifyViewModel : ViewModel(){
 
 fun connected() {
     spotifyAppRemote?.let {
-
-
         it.playerApi.subscribeToPlayerState().setEventCallback {
             val track: Track = it.track
-            
             currentSongDetails.value = "${track.name} by ${track.artist.name}"
             isPlaying.value = !it.isPaused
             trackDuration.postValue(track.duration.toInt())
             playbackPosition.postValue(it.playbackPosition.toInt())
-            val totalSeconds = (playbackPosition.value ?: 0) / 1000
-            val minutes = totalSeconds / SECONDS_IN_MINUTE
-            val seconds = totalSeconds % SECONDS_IN_MINUTE
-            passedMins.value=(String.format("%02d:%02d", minutes, seconds))
-            Log.d("TIME_MINS" ,totalSeconds.toString())
-            Log.d("TIME_MINS" ,String.format("%02d:%02d", minutes, seconds))
-
             loadImage(it.track.imageUri)
 
             Log.d("PLAYING_TRACK", track.name + " by " + track.artist.name)
+            CoroutineScope(Dispatchers.Main).launch {
+                while (true) {
+                    updatePlayBackPosition()
+                    delay(1000)
+                }
+            }
         }
         //it.playerApi.pause()
-
-
     }
 
-
 }
+    private fun updatePlayBackPosition() {
+        playbackPosition.value = playbackPosition.value?.plus(1)
+
+        val minutes = playbackPosition.value?.div(1000)?.div(SECONDS_IN_MINUTE)
+        val seconds = playbackPosition.value?.div(1000)?.mod(SECONDS_IN_MINUTE)
+        passedMins.value = String.format("%02d:%02d", minutes, seconds)
+        println(passedMins.value)
+    }
+    fun timeMillisToMinutes(): String {
+        val totalSeconds = (playbackPosition.value ?: 0) / 1000
+        val minutes = totalSeconds / SECONDS_IN_MINUTE
+        val seconds = totalSeconds % SECONDS_IN_MINUTE
+        return String.format("%02d:%02d", minutes, seconds)
+    }
 
     fun previous() {
         spotifyAppRemote?.playerApi?.skipPrevious()
