@@ -2,6 +2,7 @@ package com.example.foxichat
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -34,15 +35,19 @@ import com.spotify.protocol.types.Track
 import com.spotify.sdk.android.auth.AuthorizationClient
 import com.spotify.sdk.android.auth.AuthorizationRequest
 import com.spotify.sdk.android.auth.AuthorizationResponse
+import dagger.hilt.android.AndroidEntryPoint
 import java.util.Locale
 
-
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    /* TODO NOTE: Save keys to localProperties */
     private val clientId = "b3eb571fe1634543ba9153b853cf5631"
+    /* TODO NOTE: Save keys to gradle, same as base url */
     private val redirectUri = "http://localhost:3000/callback"
 
     companion object {
         const val FCM_CHANNEL_ID = "FCM_CHANNEL_ID"
+
     }
 
     private val requestPermissionLauncher = registerForActivityResult(
@@ -64,12 +69,14 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+
         val config = resources.configuration
         val locale = resources.configuration.locales[0]
         Locale.setDefault(locale)
         config.setLocale(locale)
 
-        val viewModel = ChatViewModel(application = application)
+        val viewModel = ChatViewModel()
 
 
         createConfigurationContext(config)
@@ -80,6 +87,7 @@ class MainActivity : ComponentActivity() {
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
         manager.createNotificationChannel(fcmChannel)
+        // TODO NOTE: Initialization of BE related properties in the presentation layer is prohibited
         auth = Firebase.auth
 
         askNotificationPermission()
@@ -145,7 +153,8 @@ class MainActivity : ComponentActivity() {
     }
 
 
-
+/* TODO NOTE: this logic should bu moved to the data layer.
+    Repository or DataSource should  handle this, not Activity */
     private fun authenticateSpotify() {
         Log.d("SPOTIFY_AUTH", "AUTHENTICATING")
 
@@ -165,6 +174,7 @@ class MainActivity : ComponentActivity() {
             .build()
         SpotifyAppRemote.connect(this, connectionParams, object : Connector.ConnectionListener {
             override fun onConnected(appRemote: SpotifyAppRemote) {
+                // TODO NOTE: Initialization of BE related properties in the presentation layer is prohibited
                 spotifyAppRemote = appRemote
                 Log.d("SPOTIFY_AUTH", "Connected! Yay!")
                 //spotifyViewModel.connected()

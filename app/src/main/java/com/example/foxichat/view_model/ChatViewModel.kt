@@ -1,29 +1,32 @@
 package com.example.foxichat.view_model
 
-import android.app.Application
 import android.util.Log
 import androidx.compose.material3.SnackbarHostState
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
+import androidx.room.Index
 import com.example.foxichat.auth
 import com.example.foxichat.dto.MessageDto
 import com.example.foxichat.dto.Room
 import com.example.foxichat.dto.UserDto
 import com.example.foxichat.model.RemoteRepository
 import com.example.foxichat.navigation.Screen
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+@HiltViewModel
+class ChatViewModel : ViewModel() {
+        // TODO NOTE: Passing context (fragment or activity) can lead to memory leaks. Avoid passing
+        //  short-lived contexts to the classes whose instances have a longer lifespan in memory
 
-class ChatViewModel(private val application: Application) :
-    AndroidViewModel(application) {
-    private val remoteRepository = RemoteRepository(application.applicationContext)
     companion object {
         const val PASSWORD_LENGTH = 6
     }
-    //   private val remoteRepository = RemoteRepository()
+
+    lateinit var remoteRepository :RemoteRepository
 
 
 
@@ -52,6 +55,7 @@ class ChatViewModel(private val application: Application) :
         return if (s.isBlank() || s.contains(' ')) {
             false
         } else {
+            // TODO NOTE: add "import android.util.Patterns" to te imports and clean up the code here
             android.util.Patterns.PHONE.matcher(s).matches()
         }
     }
@@ -60,6 +64,7 @@ class ChatViewModel(private val application: Application) :
         return if (s.isBlank() || s.contains(' ')) {
             false
         } else {
+            // TODO NOTE: add "import android.util.Patterns" to te imports and clean up the code here
             android.util.Patterns.EMAIL_ADDRESS.matcher(s).matches()
         }
     }
@@ -94,6 +99,7 @@ class ChatViewModel(private val application: Application) :
         name: String
     ) {
         println("CREATE NEW ROOM WORKED")
+        // TODO NOTE: Use viewModelScope with the required dispatcher to launch a coroutine
         CoroutineScope(Dispatchers.IO).launch {
             remoteRepository.createNewRoom(
                 hostState,
@@ -106,6 +112,20 @@ class ChatViewModel(private val application: Application) :
 
     fun signIn(nav: NavHostController, email: String, password: String) {
 
+        /* TODO NOTE: FirebaseAuth is BE in this app.
+            1. Use data layer (repository or datasource) to communicate with BE
+            ViewModels purpose is to handle logic related to UI. ViewModels can't communicate with
+            BE directly.
+            2. ViewModel calls the methods from the repository (or other datasource) and this data
+            layer classes communicate with BE or database. So signIn() in viewModel should look like
+                private val _isSignedIn: MutableLiveData<Boolean> = MutableLiveData()
+                fun signIn(email: String, password: String) {
+                    viewModelScope.launch(Dispatchers.IO) {
+                    _isSignedIn.postValue(repository.signIn(email, password)).
+                }
+            }
+            3. Every request to BE, database etc should be done in separate coroutine
+            Use viewModelScope to launch the coroutine inside view models */
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -180,6 +200,10 @@ class ChatViewModel(private val application: Application) :
         isChatReady.value = false
         CoroutineScope(Dispatchers.IO).launch {
             remoteRepository.getMessagesFromRoom(hostState, id) {
+                /* TODO NOTE: If you update the livedata in a background thread and this live data
+                    is observed by UI on main thread, there are potential issues of updating UI.
+                    To avoid them use liveData.postValue(). This ensures that the UI will be updated
+                    on the main thread */
                 isChatReady.value = it
             }
         }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavHostController
@@ -33,18 +34,24 @@ import retrofit2.Response
 import java.time.LocalDate
 import java.time.LocalTime
 
+// TODO NOTE: repository classes should not be stored in the model package
 class RemoteRepository(
-    private val context: Context
+
 ) {
 
     val Context.application: Application
         get() = this.applicationContext as Application
 
     val TAG = "REMOTE_REPO"
+    /* TODO NOTE: Check what is Dependency injection (DI). Popular libraries are Dagger, Hilt and Koin.
+        Google recommends to use Hilt (which is build on top of Dagger)
+        Using DI you'll get rid of manually created retrofit, repositories, factories, services and viewmodels.
+        Also passing the context to the repository or saving it in the viewmodel would be unnecessary */
     private val retrofit = RetrofitClient.getClient()
     private val api: ApiFactory = retrofit.create(ApiFactory::class.java)
 
-
+    // TODO NOTE: DO not store data in the repository as it can be returned directly in the
+    //  viewmodel as a function result
     val userRoomList: MutableLiveData<List<Room>> by lazy {
         MutableLiveData<List<Room>>()
     }
@@ -292,7 +299,7 @@ class RemoteRepository(
 
     suspend fun insertMessagesToLocalDb(messages: List<MessageDto>) {
         Log.d(TAG, "Messages into db")
-        RoomsDatabase(context).messageDao().insertMessages(
+        RoomsDatabase().messageDao().insertMessages(
             messages
         )
 
@@ -367,7 +374,7 @@ class RemoteRepository(
     }
     private suspend fun insertRoomsToLocalDb(rooms: List<Room>) {
         //RoomsDatabase(getApplication()).roomDao().deleteAllRooms()
-        RoomsDatabase(context).roomDao().insertRooms(rooms)
+        RoomsDatabase().roomDao().insertRooms(rooms)
     }
     private suspend fun deleteAllRooms() {
         RoomsDatabase(context).roomDao().deleteAllRooms()

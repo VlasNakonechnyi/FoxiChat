@@ -4,7 +4,7 @@ plugins {
     id("com.google.gms.google-services")
 
     id("com.google.devtools.ksp") version "1.9.22-1.0.16"
-
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -52,6 +52,7 @@ android {
         }
     }
 }
+
 
 dependencies {
 
@@ -122,4 +123,7 @@ dependencies {
 
     implementation ("io.coil-kt:coil-compose:2.1.0")
     implementation ("io.coil-kt:coil-gif:2.1.0")
+    implementation("com.google.dagger:hilt-android:2.44")
+    ksp("com.google.dagger:hilt-android-compiler:2.44")
 }
+

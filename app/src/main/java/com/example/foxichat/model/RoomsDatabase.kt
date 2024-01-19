@@ -9,6 +9,10 @@ import com.example.foxichat.dto.Room
 
 @Database(entities = [Room::class, MessageDto::class], version = 4)
 
+/* TODO NOTE: Check imports across the app, you need to include import in the top of the file
+*   import com.example.foxichat.service.Converters
+*   @TypeConverters(Converters::class)
+* */
 @TypeConverters(com.example.foxichat.service.Converters::class)
 abstract class RoomsDatabase: RoomDatabase() {
     abstract fun roomDao(): RoomDao
