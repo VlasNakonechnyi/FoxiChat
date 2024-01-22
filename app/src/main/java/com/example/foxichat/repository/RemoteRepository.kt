@@ -1,14 +1,10 @@
-package com.example.foxichat.model
+package com.example.foxichat.repository
 
 import android.app.Application
-import android.content.Context
 import android.util.Log
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavHostController
 import com.example.foxichat.api.ApiFactory
@@ -17,6 +13,7 @@ import com.example.foxichat.auth
 import com.example.foxichat.dto.MessageDto
 import com.example.foxichat.dto.Room
 import com.example.foxichat.dto.UserDto
+import com.example.foxichat.model.RoomsDatabase
 import com.example.foxichat.navigation.Screen
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.ktx.Firebase
@@ -36,11 +33,11 @@ import java.time.LocalTime
 
 // TODO NOTE: repository classes should not be stored in the model package
 class RemoteRepository(
-
+    private val api: ApiFactory,
+    private val app: Application
 ) {
 
-    val Context.application: Application
-        get() = this.applicationContext as Application
+
 
     val TAG = "REMOTE_REPO"
     /* TODO NOTE: Check what is Dependency injection (DI). Popular libraries are Dagger, Hilt and Koin.
@@ -48,7 +45,7 @@ class RemoteRepository(
         Using DI you'll get rid of manually created retrofit, repositories, factories, services and viewmodels.
         Also passing the context to the repository or saving it in the viewmodel would be unnecessary */
     private val retrofit = RetrofitClient.getClient()
-    private val api: ApiFactory = retrofit.create(ApiFactory::class.java)
+
 
     // TODO NOTE: DO not store data in the repository as it can be returned directly in the
     //  viewmodel as a function result
@@ -89,7 +86,7 @@ class RemoteRepository(
         hostState: SnackbarHostState,
         userDto: UserDto
     ) {
-        api.createUserRequest(
+        api.createUser(
             userDto
         ).enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
@@ -200,7 +197,7 @@ class RemoteRepository(
                         val list = res.await()
                         Log.d(TAG, "LIST FROM DB $list")
                         withContext(Dispatchers.Main) {
-                            RemoteRepository.messages.value = list
+                            Companion.messages.value = list
                             onReadyChange(true)
                         }
 
@@ -278,7 +275,7 @@ class RemoteRepository(
                     "timestamp" to timeToDbFormat()
                 )
                 if (token != null) {
-                    apiService.postRequest(body).enqueue(object : Callback<ResponseBody> {
+                    apiService.sendNotificationToken(body).enqueue(object : Callback<ResponseBody> {
                         override fun onResponse(
                             call: Call<ResponseBody>,
                             response: Response<ResponseBody>
@@ -299,15 +296,15 @@ class RemoteRepository(
 
     suspend fun insertMessagesToLocalDb(messages: List<MessageDto>) {
         Log.d(TAG, "Messages into db")
-        RoomsDatabase().messageDao().insertMessages(
+        RoomsDatabase(app.applicationContext).messageDao().insertMessages(
             messages
         )
 
     }
 
     suspend fun getMessagesFromLocalDb(id: String): MutableList<MessageDto> {
-        Log.d(TAG, "Messages from db ${RoomsDatabase(context).messageDao().getMessagesFromLocalDb(id)}")
-        return RoomsDatabase(context).messageDao().getMessagesFromLocalDb(id)
+        Log.d(TAG, "Messages from db ${RoomsDatabase(app.applicationContext).messageDao().getMessagesFromLocalDb(id)}")
+        return RoomsDatabase(app.applicationContext).messageDao().getMessagesFromLocalDb(id)
     }
 
     fun loadUserRooms(
@@ -374,14 +371,14 @@ class RemoteRepository(
     }
     private suspend fun insertRoomsToLocalDb(rooms: List<Room>) {
         //RoomsDatabase(getApplication()).roomDao().deleteAllRooms()
-        RoomsDatabase().roomDao().insertRooms(rooms)
+        RoomsDatabase(app.applicationContext).roomDao().insertRooms(rooms)
     }
     private suspend fun deleteAllRooms() {
-        RoomsDatabase(context).roomDao().deleteAllRooms()
+        RoomsDatabase(app.applicationContext).roomDao().deleteAllRooms()
     }
 
     private suspend fun getRoomsFromLocalDb(): SnapshotStateList<Room> {
-        return RoomsDatabase(context).roomDao().getAllRooms().toMutableStateList()
+        return RoomsDatabase(app.applicationContext).roomDao().getAllRooms().toMutableStateList()
     }
 
 

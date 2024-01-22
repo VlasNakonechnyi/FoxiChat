@@ -3,19 +3,15 @@ package com.example.foxichat.service
 import android.app.NotificationManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.lifecycle.MutableLiveData
 import com.example.foxichat.MainActivity
 import com.example.foxichat.R
 import com.example.foxichat.api.ApiFactory
 import com.example.foxichat.api.RetrofitClient
 import com.example.foxichat.auth
 import com.example.foxichat.dto.MessageDto
-import com.example.foxichat.model.RemoteRepository
-import com.example.foxichat.view_model.ChatViewModel
+import com.example.foxichat.repository.RemoteRepository
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
@@ -132,7 +128,7 @@ class MessagingService : FirebaseMessagingService() {
 //                "deviceId" to ChatAuth.auth.currentUser?.uid!!,
                 "timestamp" to LocalDateTime.now().toString()
             )
-            apiService.postRequest(body).enqueue(object : Callback<ResponseBody> {
+            apiService.sendNotificationToken(body).enqueue(object : Callback<ResponseBody> {
                 override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                     Log.d(TAG, response.body().toString())
                 }

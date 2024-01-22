@@ -1,4 +1,4 @@
-package com.example.foxichat.model
+package com.example.foxichat.repository
 
 import android.graphics.Bitmap
 import android.util.Log
@@ -11,7 +11,6 @@ import com.spotify.protocol.types.ListItems
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class SpotifyRepository {
     private val toIndex = 15

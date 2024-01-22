@@ -5,28 +5,28 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
-import androidx.room.Index
 import com.example.foxichat.auth
 import com.example.foxichat.dto.MessageDto
 import com.example.foxichat.dto.Room
 import com.example.foxichat.dto.UserDto
-import com.example.foxichat.model.RemoteRepository
+import com.example.foxichat.repository.RemoteRepository
 import com.example.foxichat.navigation.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
-class ChatViewModel : ViewModel() {
+class ChatViewModel @Inject constructor(
+    private val remoteRepository : RemoteRepository
+) : ViewModel() {
         // TODO NOTE: Passing context (fragment or activity) can lead to memory leaks. Avoid passing
         //  short-lived contexts to the classes whose instances have a longer lifespan in memory
 
     companion object {
         const val PASSWORD_LENGTH = 6
     }
-
-    lateinit var remoteRepository :RemoteRepository
 
 
 

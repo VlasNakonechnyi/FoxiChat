@@ -2,7 +2,6 @@ package com.example.foxichat
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -21,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 import com.example.foxichat.navigation.NavigationHost
 import com.example.foxichat.ui.theme.JetpackComposeExTheme
@@ -31,7 +31,6 @@ import com.google.firebase.ktx.Firebase
 import com.spotify.android.appremote.api.ConnectionParams
 import com.spotify.android.appremote.api.Connector
 import com.spotify.android.appremote.api.SpotifyAppRemote
-import com.spotify.protocol.types.Track
 import com.spotify.sdk.android.auth.AuthorizationClient
 import com.spotify.sdk.android.auth.AuthorizationRequest
 import com.spotify.sdk.android.auth.AuthorizationResponse
@@ -76,7 +75,7 @@ class MainActivity : ComponentActivity() {
         Locale.setDefault(locale)
         config.setLocale(locale)
 
-        val viewModel = ChatViewModel()
+
 
 
         createConfigurationContext(config)
@@ -101,6 +100,7 @@ class MainActivity : ComponentActivity() {
             val snackbarHostState = remember { SnackbarHostState() }
             val navController = rememberNavController()
             JetpackComposeExTheme {
+                val viewModel = hiltViewModel<ChatViewModel>()
                 Surface(
                     modifier = Modifier
                         .fillMaxSize()

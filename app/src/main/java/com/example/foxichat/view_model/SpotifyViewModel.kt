@@ -3,7 +3,7 @@ package com.example.foxichat.view_model
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.foxichat.model.SpotifyRepository
+import com.example.foxichat.repository.SpotifyRepository
 import com.example.foxichat.spotifyAppRemote
 import com.spotify.protocol.types.ImageUri
 import com.spotify.protocol.types.ListItem
@@ -13,7 +13,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.sql.Time
 
 class SpotifyViewModel : ViewModel(){
  init {
@@ -51,12 +50,7 @@ fun connected() {
             loadImage(it.track.imageUri)
 
             Log.d("PLAYING_TRACK", track.name + " by " + track.artist.name)
-            CoroutineScope(Dispatchers.Main).launch {
-                while (true) {
-                    updatePlayBackPosition()
-                    delay(1000)
-                }
-            }
+
         }
         //it.playerApi.pause()
     }

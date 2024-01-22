@@ -4,6 +4,7 @@ plugins {
     id("com.google.gms.google-services")
 
     id("com.google.devtools.ksp") version "1.9.22-1.0.16"
+
     id("com.google.dagger.hilt.android")
 }
 
@@ -26,7 +27,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
+            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -123,7 +124,11 @@ dependencies {
 
     implementation ("io.coil-kt:coil-compose:2.1.0")
     implementation ("io.coil-kt:coil-gif:2.1.0")
-    implementation("com.google.dagger:hilt-android:2.44")
-    ksp("com.google.dagger:hilt-android-compiler:2.44")
+    //Dagger - Hilt
+    implementation (libs.hilt.android)
+    ksp (libs.hilt.compiler)
+
+    ksp (libs.androidx.hilt.compiler)
+    implementation (libs.androidx.hilt.navigation.compose)
 }
 

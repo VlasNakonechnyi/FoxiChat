@@ -20,7 +20,7 @@ interface ApiFactory {
     //  various contexts. This function posts token to BE, so call it sendToken() or a similarly
     //  descriptive term to clearly indicate its purpose
     @POST("/tokens")
-    fun postRequest(@Body body: Map<String, String>): Call<ResponseBody>
+    fun sendNotificationToken(@Body body: Map<String, String>): Call<ResponseBody>
 
     @POST("/messages/send-message")
     fun sendMessage(@Body body: MessageDto) : Call<ResponseBody>
@@ -29,7 +29,7 @@ interface ApiFactory {
     fun getMessagesFromRoom(@Query("roomid") string: String): Call<ResponseBody>
 
     @POST("/users/create-user")
-    fun createUserRequest(@Body body: UserDto): Call<ResponseBody>
+    fun createUser(@Body body: UserDto): Call<ResponseBody>
 
     @GET("/rooms/get-all-rooms")
     fun getAllRooms(): Call<ResponseBody>
