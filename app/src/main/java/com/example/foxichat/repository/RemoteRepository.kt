@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
-import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavHostController
 import com.example.foxichat.api.ApiFactory
 import com.example.foxichat.api.RetrofitClient
@@ -36,31 +35,18 @@ class RemoteRepository(
     private val api: ApiFactory,
     private val app: Application
 ) {
-
-
-
     val TAG = "REMOTE_REPO"
     /* TODO NOTE: Check what is Dependency injection (DI). Popular libraries are Dagger, Hilt and Koin.
         Google recommends to use Hilt (which is build on top of Dagger)
         Using DI you'll get rid of manually created retrofit, repositories, factories, services and viewmodels.
         Also passing the context to the repository or saving it in the viewmodel would be unnecessary */
-    private val retrofit = RetrofitClient.getClient()
-
 
     // TODO NOTE: DO not store data in the repository as it can be returned directly in the
     //  viewmodel as a function result
-    val userRoomList: MutableLiveData<List<Room>> by lazy {
-        MutableLiveData<List<Room>>()
-    }
-    val roomsList: MutableLiveData<List<Room>> by lazy {
-        MutableLiveData<List<Room>>()
-    }
 
 
     companion object {
-        val messages: MutableLiveData<MutableList<MessageDto>> by lazy {
-            MutableLiveData<MutableList<MessageDto>>()
-        }
+
         var currentChatId = ""
         fun addToCurrentMessages(msg: MessageDto) {
 
@@ -68,6 +54,7 @@ class RemoteRepository(
                 add(msg)
             }
         }
+
         private fun add(msg: MessageDto) {
 
             val list = messages.value?.let { ArrayList(it) }
@@ -175,57 +162,36 @@ class RemoteRepository(
         })
     }
 
-    fun getMessagesFromRoom(
+
+    // Get messages for the specific room from the backend
+    suspend fun getMessagesFromRoom(
         hostState: SnackbarHostState,
         roomId: String,
         onReadyChange: (Boolean) -> Unit
-    ) {
+    ): MutableList<MessageDto> {
         currentChatId = roomId
         Log.d(TAG, roomId)
         val gson = Gson()
-        api.getMessagesFromRoom(roomId).enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-
-                response.body()?.string()?.let {
-
-                    CoroutineScope(Dispatchers.IO).launch {
-                        val messages =
-                            gson.fromJson(it, Array<MessageDto>::class.java)
-                                .asList()
-                        insertMessagesToLocalDb(messages)
-                        val res = async { getMessagesFromLocalDb(roomId) }
-                        val list = res.await()
-                        Log.d(TAG, "LIST FROM DB $list")
-                        withContext(Dispatchers.Main) {
-                            Companion.messages.value = list
-                            onReadyChange(true)
-                        }
-
-                    }
-
-                    Log.d(TAG, messages.toString())
-                }
-
-
+        try {
+            val response = api.getMessagesFromRoom(roomId)
+            response.string().let {
+                val messages =
+                    gson.fromJson(it, Array<MessageDto>::class.java)
+                        .asList()
+                insertMessagesToLocalDb(messages)
+                onReadyChange(true)
+                return getMessagesFromLocalDb(roomId)
             }
-
-            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                CoroutineScope(Dispatchers.IO).launch {
-                    val res = async { getMessagesFromLocalDb(roomId) }
-                    withContext(Dispatchers.Main) {
-                        messages.value = res.await()
-                        onReadyChange(true)
-                    }
-
-                }
-                CoroutineScope(Dispatchers.Main).launch {
-                    hostState.showSnackbar(
-                        message = "Something went wrong"
-                    )
-                }
+        } catch (e: Exception) {
+            CoroutineScope(Dispatchers.Main).launch {
+                hostState.showSnackbar(
+                    message = "Something went wrong"
+                )
             }
+            onReadyChange(true)
 
-        })
+            return getMessagesFromLocalDb(roomId)
+        }
     }
 
 
@@ -249,7 +215,6 @@ class RemoteRepository(
         }
 
     }
-
 
 
     fun sendNotificationToken(uid: String) {
@@ -294,85 +259,61 @@ class RemoteRepository(
         )
     }
 
-    suspend fun insertMessagesToLocalDb(messages: List<MessageDto>) {
+    private suspend fun insertMessagesToLocalDb(messages: List<MessageDto>) {
         Log.d(TAG, "Messages into db")
         RoomsDatabase(app.applicationContext).messageDao().insertMessages(
             messages
         )
-
     }
 
-    suspend fun getMessagesFromLocalDb(id: String): MutableList<MessageDto> {
-        Log.d(TAG, "Messages from db ${RoomsDatabase(app.applicationContext).messageDao().getMessagesFromLocalDb(id)}")
+    private suspend fun getMessagesFromLocalDb(id: String): MutableList<MessageDto> {
+        Log.d(
+            TAG,
+            "Messages from db ${
+                RoomsDatabase(app.applicationContext).messageDao().getMessagesFromLocalDb(id)
+            }"
+        )
         return RoomsDatabase(app.applicationContext).messageDao().getMessagesFromLocalDb(id)
     }
-
-    fun loadUserRooms(
+    suspend fun loadUserRooms(
         onReadyChange: (Boolean) -> Unit
-    ) {
+    ): SnapshotStateList<Room> {
         val gson = Gson()
-        api.getUserRooms(auth.uid.toString())
-            .enqueue(object : Callback<ResponseBody> {
-                override fun onResponse(
-                    call: Call<ResponseBody>,
-                    response: Response<ResponseBody>
-                ) {
-                    //CoroutineScope(Dispatchers.IO).launch{ deleteAllRooms()}
-                    response.body()?.string()?.let {
-                        val rooms = gson.fromJson(it, Array<Room>::class.java).asList()
-                        CoroutineScope(Dispatchers.IO).launch {
-                            insertRoomsToLocalDb(rooms)
-                            val res = async { getRoomsFromLocalDb() }
-                            val list = res.await()
-                            withContext(Dispatchers.Main) {
-                                userRoomList.value = list
-                                onReadyChange(true)
-                            }
-                            Log.d("LOAD_USER_ROOMS", rooms.toString())
-
-                        }
-
-                    }
-                }
-
-                override fun onFailure(vcall: Call<ResponseBody>, t: Throwable) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        val res = async { getRoomsFromLocalDb() }
-                        withContext(Dispatchers.Main) {
-                            userRoomList.value = res.await()
-                            onReadyChange(true)
-                        }
-
-                    }
-                }
-            })
-
-
-    }
-    fun loadAllRooms(onReadyChange: (Boolean) -> Unit) {
-        val gson = Gson()
-        api.getAllRooms().enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(
-                call: Call<ResponseBody>,
-                response: Response<ResponseBody>
-            ) {
-                response.body()?.string()?.let {
-                    val rooms = gson.fromJson(it, Array<Room>::class.java).asList()
-                    println("ROOMS: $rooms")
-                    roomsList.value = rooms
-                    onReadyChange(true)
-                }
-            }
-
-            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+        val response = api.getUserRooms(auth.uid.toString())
+        try {
+            response.string().let {
+                val rooms = gson.fromJson(it, Array<Room>::class.java).asList()
+                insertRoomsToLocalDb(rooms)
                 onReadyChange(true)
+                return getRoomsFromLocalDb()
             }
-        })
+        } catch (e: Exception) {
+            onReadyChange(true)
+            return getRoomsFromLocalDb()
+        }
     }
+
+    suspend fun loadAllRooms(onReadyChange: (Boolean) -> Unit): List<Room> {
+        val gson = Gson()
+        val response = api.getAllRooms()
+        try {
+            response.string().let {
+                val rooms = gson.fromJson(it, Array<Room>::class.java).asList()
+                println("ROOMS: $rooms")
+                onReadyChange(true)
+                return rooms
+            }
+        } catch (e: Exception) {
+            onReadyChange(true)
+            return emptyList()
+        }
+    }
+
     private suspend fun insertRoomsToLocalDb(rooms: List<Room>) {
         //RoomsDatabase(getApplication()).roomDao().deleteAllRooms()
         RoomsDatabase(app.applicationContext).roomDao().insertRooms(rooms)
     }
+
     private suspend fun deleteAllRooms() {
         RoomsDatabase(app.applicationContext).roomDao().deleteAllRooms()
     }
@@ -381,5 +322,19 @@ class RemoteRepository(
         return RoomsDatabase(app.applicationContext).roomDao().getAllRooms().toMutableStateList()
     }
 
+    fun signIn(nav: NavHostController, email: String, password: String) {
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val user = auth.currentUser
+                    Log.d("USER_SIGNED_IN", user?.uid.toString())
+                    nav.navigate(Screen.HOME.name)
+                } else {
+                    // If sign in fails, display a message to the user.
+                    //Log.d("USER_SIGNED_IN", user?.uid.toString())
+                }
+            }
+
+    }
 
 }

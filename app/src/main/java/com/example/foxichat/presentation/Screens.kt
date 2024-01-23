@@ -1,4 +1,4 @@
-package com.example.foxichat.user_interface
+package com.example.foxichat.presentation
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
@@ -63,7 +63,7 @@ import com.example.foxichat.R
 import com.example.foxichat.auth
 import com.example.foxichat.dto.MessageDto
 import com.example.foxichat.navigation.Screen
-import com.example.foxichat.view_model.ChatViewModel
+import com.example.foxichat.presentation.view_model.ChatViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

@@ -1,6 +1,5 @@
-package com.example.foxichat.user_interface
+package com.example.foxichat.presentation
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,19 +28,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.foxichat.R
-import com.example.foxichat.view_model.ChatViewModel
-import com.example.foxichat.view_model.SpotifyViewModel
+import com.example.foxichat.presentation.view_model.ChatViewModel
+import com.example.foxichat.presentation.view_model.SpotifyViewModel
 import com.github.orioneee.ColorMode
 import com.github.orioneee.Ctm
 import com.github.orioneee.ThemeMode
-import kotlin.math.min
 
 @Composable
 fun SettingsScreen(

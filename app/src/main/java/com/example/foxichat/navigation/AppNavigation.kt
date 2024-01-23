@@ -10,13 +10,13 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.foxichat.user_interface.HomeScreen
-import com.example.foxichat.user_interface.Screens
-import com.example.foxichat.user_interface.SettingsScreen
-import com.example.foxichat.user_interface.SpotifyScreen
-import com.example.foxichat.user_interface.isNavBarVisible
-import com.example.foxichat.view_model.ChatViewModel
-import com.example.foxichat.view_model.SpotifyViewModel
+import com.example.foxichat.presentation.HomeScreen
+import com.example.foxichat.presentation.Screens
+import com.example.foxichat.presentation.SettingsScreen
+import com.example.foxichat.presentation.SpotifyScreen
+import com.example.foxichat.presentation.isNavBarVisible
+import com.example.foxichat.presentation.view_model.ChatViewModel
+import com.example.foxichat.presentation.view_model.SpotifyViewModel
 import kotlinx.coroutines.CoroutineScope
 
 enum class Screen {

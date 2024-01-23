@@ -4,6 +4,7 @@ import android.app.Application
 import com.example.foxichat.api.ApiFactory
 import com.example.foxichat.api.RetrofitClient
 import com.example.foxichat.repository.RemoteRepository
+import com.example.foxichat.repository.SpotifyRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,5 +22,9 @@ object AppModule {
     @Provides
     @Singleton
     fun provideChatRepository(api : ApiFactory, app: Application) = RemoteRepository(api, app)
+
+    @Provides
+    @Singleton
+    fun provideSpotifyRepository(app: Application) = SpotifyRepository(app)
 
 }

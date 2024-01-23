@@ -1,4 +1,4 @@
-package com.example.foxichat.user_interface
+package com.example.foxichat.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -26,8 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.foxichat.R
-import com.example.foxichat.view_model.ChatViewModel
-import com.example.foxichat.view_model.SpotifyViewModel
+import com.example.foxichat.presentation.view_model.ChatViewModel
+import com.example.foxichat.presentation.view_model.SpotifyViewModel
 import com.spotify.protocol.types.ListItem
 
 @Composable

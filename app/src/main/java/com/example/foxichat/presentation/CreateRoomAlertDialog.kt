@@ -1,4 +1,4 @@
-package com.example.foxichat.user_interface
+package com.example.foxichat.presentation
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth

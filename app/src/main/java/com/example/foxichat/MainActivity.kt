@@ -24,8 +24,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 import com.example.foxichat.navigation.NavigationHost
 import com.example.foxichat.ui.theme.JetpackComposeExTheme
-import com.example.foxichat.view_model.ChatViewModel
-import com.example.foxichat.view_model.SpotifyViewModel
+import com.example.foxichat.presentation.view_model.ChatViewModel
+import com.example.foxichat.presentation.view_model.SpotifyViewModel
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.spotify.android.appremote.api.ConnectionParams
@@ -39,10 +39,7 @@ import java.util.Locale
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    /* TODO NOTE: Save keys to localProperties */
-    private val clientId = "b3eb571fe1634543ba9153b853cf5631"
-    /* TODO NOTE: Save keys to gradle, same as base url */
-    private val redirectUri = "http://localhost:3000/callback"
+
 
     companion object {
         const val FCM_CHANNEL_ID = "FCM_CHANNEL_ID"
@@ -65,71 +62,46 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-
         val config = resources.configuration
         val locale = resources.configuration.locales[0]
         Locale.setDefault(locale)
         config.setLocale(locale)
-
-
-
-
         createConfigurationContext(config)
         resources.updateConfiguration(config, resources.displayMetrics)
-        val fcmChannel =
-            NotificationChannel(FCM_CHANNEL_ID, "FCM_Channel", NotificationManager.IMPORTANCE_HIGH)
-
+        val fcmChannel = NotificationChannel(FCM_CHANNEL_ID, "FCM_Channel", NotificationManager.IMPORTANCE_HIGH)
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-
         manager.createNotificationChannel(fcmChannel)
-        // TODO NOTE: Initialization of BE related properties in the presentation layer is prohibited
-        auth = Firebase.auth
-
         askNotificationPermission()
-
-
         setContent {
-            val spotifyViewModel by remember {
-                mutableStateOf(SpotifyViewModel())
-            }
             val scope = rememberCoroutineScope()
             val snackbarHostState = remember { SnackbarHostState() }
             val navController = rememberNavController()
             JetpackComposeExTheme {
                 val viewModel = hiltViewModel<ChatViewModel>()
+                val spotifyViewModel = hiltViewModel<SpotifyViewModel>()
                 Surface(
                     modifier = Modifier
                         .fillMaxSize()
-
                 ) {
-                    NavigationHost(scope, snackbarHostState, viewModel, spotifyViewModel, navController)
-
+                    NavigationHost(
+                        scope,
+                        snackbarHostState,
+                        viewModel,
+                        spotifyViewModel,
+                        navController
+                    )
                 }
             }
-
-
         }
     }
-
-    override fun onStart() {
-        super.onStart()
-        trySpotify()
-    }
-
-
-
     override fun onStop() {
         super.onStop()
         spotifyAppRemote?.let {
             SpotifyAppRemote.disconnect(it)
         }
     }
-
-
     private fun askNotificationPermission() {
         // This is only necessary for API level >= 33 (TIRAMISU)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -151,63 +123,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
-
-/* TODO NOTE: this logic should bu moved to the data layer.
-    Repository or DataSource should  handle this, not Activity */
-    private fun authenticateSpotify() {
-        Log.d("SPOTIFY_AUTH", "AUTHENTICATING")
-
-        val builder =
-            AuthorizationRequest.Builder(clientId, AuthorizationResponse.Type.TOKEN, redirectUri)
-
-        builder.setScopes(arrayOf("streaming"))
-        val request = builder.build()
-
-        AuthorizationClient.openLoginInBrowser(this, request);
-    }
-    fun trySpotify() {
-
-        val connectionParams = ConnectionParams.Builder(clientId)
-            .setRedirectUri(redirectUri)
-            .showAuthView(true)
-            .build()
-        SpotifyAppRemote.connect(this, connectionParams, object : Connector.ConnectionListener {
-            override fun onConnected(appRemote: SpotifyAppRemote) {
-                // TODO NOTE: Initialization of BE related properties in the presentation layer is prohibited
-                spotifyAppRemote = appRemote
-                Log.d("SPOTIFY_AUTH", "Connected! Yay!")
-                //spotifyViewModel.connected()
-                // Now you can start interacting with App Remote
-
-            }
-
-            override fun onFailure(throwable: Throwable) {
-                authenticateSpotify()
-            }
-        })
-    }
-
-//    override fun onNewIntent(intent: Intent) {
-//        super.onNewIntent(intent)
-//        Log.d("SPOTIFY_AUTH", "On new intent")
-//        val uri = intent.data
-//        if (uri != null) {
-//            val response = AuthorizationResponse.fromUri(uri)
-//
-//            when (response.type) {
-//                AuthorizationResponse.Type.TOKEN -> {
-//                    //trySpotify()
-//                }
-//                AuthorizationResponse.Type.ERROR -> {
-//                    Log.d("SPOTIFY_AUTH", "Failed")
-//                }
-//                else -> {
-//                    Log.d("SPOTIFY_AUTH", "Failed")
-//                }
-//            }
-//        }
-//    }
 }
 
 

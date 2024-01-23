@@ -5,11 +5,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.foxichat.user_interface.AnimatedSpotifyIcon
+import com.example.foxichat.presentation.AnimatedSpotifyIcon
 
 sealed class BottomNavItems( val route: String, val icon: @Composable () -> Unit) {
     companion object {

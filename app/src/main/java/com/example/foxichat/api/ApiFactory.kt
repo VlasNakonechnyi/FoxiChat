@@ -16,9 +16,6 @@ import retrofit2.http.Query
 //  organized structure.
 interface ApiFactory {
 
-    // TODO NOTE: Give the functions meaningful names to enhance clarity when they are called from
-    //  various contexts. This function posts token to BE, so call it sendToken() or a similarly
-    //  descriptive term to clearly indicate its purpose
     @POST("/tokens")
     fun sendNotificationToken(@Body body: Map<String, String>): Call<ResponseBody>
 
@@ -26,15 +23,15 @@ interface ApiFactory {
     fun sendMessage(@Body body: MessageDto) : Call<ResponseBody>
 
     @GET("/messages/get-messages")
-    fun getMessagesFromRoom(@Query("roomid") string: String): Call<ResponseBody>
+    suspend fun getMessagesFromRoom(@Query("roomid") string: String): ResponseBody
 
     @POST("/users/create-user")
     fun createUser(@Body body: UserDto): Call<ResponseBody>
 
     @GET("/rooms/get-all-rooms")
-    fun getAllRooms(): Call<ResponseBody>
+    suspend fun getAllRooms(): ResponseBody
     @POST("/rooms/get-user-rooms")
-    fun getUserRooms(@Body body: String): Call<ResponseBody>
+    suspend fun getUserRooms(@Body body: String): ResponseBody
 
     @POST("/rooms/create-room")
     fun createRoom(@Body body: Room): Call<ResponseBody>

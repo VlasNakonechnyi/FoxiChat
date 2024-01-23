@@ -1,18 +1,29 @@
 package com.example.foxichat.repository
 
+import android.app.Activity
+import android.app.Application
 import android.graphics.Bitmap
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.example.foxichat.spotifyAppRemote
+import com.example.foxichat.presentation.view_model.SpotifyViewModel
+import com.spotify.android.appremote.api.ConnectionParams
+import com.spotify.android.appremote.api.Connector
 import com.spotify.android.appremote.api.ContentApi
+import com.spotify.android.appremote.api.SpotifyAppRemote
 import com.spotify.protocol.types.ImageUri
 import com.spotify.protocol.types.ListItem
 import com.spotify.protocol.types.ListItems
+import com.spotify.protocol.types.Track
+import com.spotify.sdk.android.auth.AuthorizationClient
+import com.spotify.sdk.android.auth.AuthorizationRequest
+import com.spotify.sdk.android.auth.AuthorizationResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
-class SpotifyRepository {
+class SpotifyRepository (private val application: Application) {
     private val toIndex = 15
     val recommendedContent by lazy {
         MutableLiveData<ListItems>()
@@ -24,6 +35,52 @@ class SpotifyRepository {
         MutableLiveData<Bitmap>()
     }
 
+    companion object {
+        // private const val SECONDS_IN_MINUTE = 60
+        /* TODO NOTE: Save keys to localProperties */
+        private val clientId = "b3eb571fe1634543ba9153b853cf5631"
+        /* TODO NOTE: Save keys to gradle, same as base url */
+        private val redirectUri = "http://localhost:3000/callback"
+
+    }
+
+    private fun authenticateSpotify() {
+        Log.d("SPOTIFY_AUTH", "AUTHENTICATING")
+
+        val builder =
+            AuthorizationRequest.Builder(
+                clientId, AuthorizationResponse.Type.TOKEN,
+                redirectUri
+            )
+
+        builder.setScopes(arrayOf("streaming"))
+        val request = builder.build()
+
+        AuthorizationClient.openLoginInBrowser(application.applicationContext as Activity, request);
+    }
+    fun trySpotify() {
+
+        val connectionParams = ConnectionParams.Builder(clientId)
+            .setRedirectUri(redirectUri)
+            .showAuthView(true)
+            .build()
+        SpotifyAppRemote.connect(application.applicationContext as Activity, connectionParams, object : Connector.ConnectionListener {
+            override fun onConnected(appRemote: SpotifyAppRemote) {
+                // TODO NOTE: Initialization of BE related properties in the presentation layer is prohibited
+                spotifyAppRemote = appRemote
+                Log.d("SPOTIFY_AUTH", "Connected! Yay!")
+                //spotifyViewModel.connected()
+                // Now you can start interacting with App Remote
+
+            }
+
+            override fun onFailure(throwable: Throwable) {
+                authenticateSpotify()
+            }
+        })
+    }
+
+
 
     fun loadSpotifyContent() {
         spotifyAppRemote?.contentApi?.getRecommendedContentItems(ContentApi.ContentType.DEFAULT)
@@ -34,7 +91,6 @@ class SpotifyRepository {
                 throw throwable
             }
     }
-
     fun loadChildren(item: ListItem) {
        // println(recommendedContentChildren.value?.items.contentToString() + "1")
         CoroutineScope(Dispatchers.Main).launch {

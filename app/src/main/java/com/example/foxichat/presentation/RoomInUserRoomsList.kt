@@ -1,4 +1,4 @@
-package com.example.foxichat.user_interface
+package com.example.foxichat.presentation
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -10,9 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -22,22 +19,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.foxichat.R
-import com.example.foxichat.auth
 import com.example.foxichat.dto.Room
 import com.example.foxichat.navigation.Screen
-import com.example.foxichat.view_model.ChatViewModel
+import com.example.foxichat.presentation.view_model.ChatViewModel
 
 @Composable
-fun RoomInJoinRoomList(
-    room: Room,
-    viewModel: ChatViewModel,
+fun RoomInUserRoomsList(
     nav: NavHostController,
-    snackbarHostState: SnackbarHostState
+    snackbarHostState: SnackbarHostState,
+    viewModel: ChatViewModel,
+    room: Room
 ) {
     Box(
         modifier = Modifier
@@ -79,35 +74,11 @@ fun RoomInJoinRoomList(
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 16.sp
                 )
-                if (room.users.contains(auth.uid.toString())) {
-                    Text(
-                        text = stringResource(id = R.string.text_already_in_room),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                } else {
 
-                    Button(
-                        onClick = {
-                            viewModel.joinRoom(snackbarHostState, room.id)
-                            viewModel.getAllRooms()
-                        },
-                        shape = RoundedCornerShape(50),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            contentColor = MaterialTheme.colorScheme.primary
-                        )
-
-                    ) {
-                        Text(text = stringResource(id = R.string.text_join))
-                    }
-
-                }
 
             }
 
+
         }
     }
-
-
 }
-
