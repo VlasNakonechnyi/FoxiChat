@@ -98,7 +98,7 @@ class MainActivity : ComponentActivity() {
     }
     override fun onStop() {
         super.onStop()
-        spotifyAppRemote?.let {
+        SpotifyWorker.spotifyAppRemote?.let {
             SpotifyAppRemote.disconnect(it)
         }
     }

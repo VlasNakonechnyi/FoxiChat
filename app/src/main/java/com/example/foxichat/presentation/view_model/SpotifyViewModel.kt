@@ -3,21 +3,14 @@ package com.example.foxichat.presentation.view_model
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.foxichat.SpotifyWorker
 import com.example.foxichat.repository.SpotifyRepository
-import com.example.foxichat.spotifyAppRemote
-import com.spotify.android.appremote.api.ConnectionParams
-import com.spotify.android.appremote.api.Connector
-import com.spotify.android.appremote.api.SpotifyAppRemote
 import com.spotify.protocol.types.ImageUri
 import com.spotify.protocol.types.ListItem
 import com.spotify.protocol.types.Track
-import com.spotify.sdk.android.auth.AuthorizationClient
-import com.spotify.sdk.android.auth.AuthorizationRequest
-import com.spotify.sdk.android.auth.AuthorizationResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -62,20 +55,20 @@ class SpotifyViewModel @Inject constructor(
 
 
     fun previous() {
-        spotifyAppRemote?.playerApi?.skipPrevious()
+        SpotifyWorker.spotifyAppRemote?.playerApi?.skipPrevious()
     }
 
     fun next() {
-        spotifyAppRemote?.playerApi?.skipNext()
+        SpotifyWorker.spotifyAppRemote?.playerApi?.skipNext()
     }
 
     fun pause() {
-        spotifyAppRemote?.playerApi?.pause()
+        SpotifyWorker.spotifyAppRemote?.playerApi?.pause()
         //   connected()
     }
 
     fun play() {
-        spotifyAppRemote?.playerApi?.resume()
+        SpotifyWorker.spotifyAppRemote?.playerApi?.resume()
     }
 
     fun loadSpotifyRecommendedContent() {
@@ -89,7 +82,7 @@ class SpotifyViewModel @Inject constructor(
 
     }
     fun connected() {
-        spotifyAppRemote?.let {
+        SpotifyWorker.spotifyAppRemote?.let { it ->
             it.playerApi.subscribeToPlayerState().setEventCallback {
                 val track: Track = it.track
                 currentSongDetails.value = "${track.name} by ${track.artist.name}"

@@ -1,7 +1,13 @@
 package com.example.foxichat
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
-// TODO NOTE: Can you create a FirebaseWorker or similar class to save this property and other
-//  related logic there?
-lateinit var auth: FirebaseAuth
+object AuthenticationWorker {
+    lateinit var auth: FirebaseAuth
+
+    fun authenticate() {
+        auth = Firebase.auth
+    }
+}

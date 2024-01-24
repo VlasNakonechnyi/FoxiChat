@@ -1,7 +1,7 @@
 package com.example.foxichat.api
 
 import com.example.foxichat.dto.MessageDto
-import com.example.foxichat.dto.Room
+import com.example.foxichat.dto.RoomDto
 import com.example.foxichat.dto.UserDto
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -34,7 +34,7 @@ interface ApiFactory {
     suspend fun getUserRooms(@Body body: String): ResponseBody
 
     @POST("/rooms/create-room")
-    fun createRoom(@Body body: Room): Call<ResponseBody>
+    fun createRoom(@Body body: RoomDto): Call<ResponseBody>
 
     @POST("/rooms/join-room")
     fun joinRoom(@Body body: Map<String, String>): Call<ResponseBody>

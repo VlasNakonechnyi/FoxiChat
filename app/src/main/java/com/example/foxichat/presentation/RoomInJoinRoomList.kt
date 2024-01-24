@@ -26,15 +26,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.foxichat.AuthenticationWorker
 import com.example.foxichat.R
-import com.example.foxichat.auth
-import com.example.foxichat.dto.Room
+import com.example.foxichat.dto.RoomDto
 import com.example.foxichat.navigation.Screen
 import com.example.foxichat.presentation.view_model.ChatViewModel
 
 @Composable
 fun RoomInJoinRoomList(
-    room: Room,
+    roomDto: RoomDto,
     viewModel: ChatViewModel,
     nav: NavHostController,
     snackbarHostState: SnackbarHostState
@@ -45,8 +45,8 @@ fun RoomInJoinRoomList(
             .size(100.dp)
             .shadow(0.5.dp)
             .clickable(onClick = {
-                viewModel.loadMessagesFromRoom(snackbarHostState, room.id)
-                nav.navigate(Screen.CHAT_SCREEN.name + "/${room.id}/${room.name}")
+                viewModel.loadMessagesFromRoom(snackbarHostState, roomDto.id)
+                nav.navigate(Screen.CHAT_SCREEN.name + "/${roomDto.id}/${roomDto.name}")
             }),
         contentAlignment = Alignment.CenterStart
 
@@ -74,12 +74,12 @@ fun RoomInJoinRoomList(
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
                 Text(
-                    text = room.name,
+                    text = roomDto.name,
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 16.sp
                 )
-                if (room.users.contains(auth.uid.toString())) {
+                if (roomDto.users.contains(AuthenticationWorker.auth.uid.toString())) {
                     Text(
                         text = stringResource(id = R.string.text_already_in_room),
                         color = MaterialTheme.colorScheme.primary
@@ -88,8 +88,8 @@ fun RoomInJoinRoomList(
 
                     Button(
                         onClick = {
-                            viewModel.joinRoom(snackbarHostState, room.id)
-                            viewModel.getAllRooms()
+                            viewModel.joinRoom(snackbarHostState, roomDto.id)
+                            viewModel.loadAllRooms()
                         },
                         shape = RoundedCornerShape(50),
                         colors = ButtonDefaults.buttonColors(

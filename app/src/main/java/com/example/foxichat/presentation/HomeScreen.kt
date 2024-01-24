@@ -43,7 +43,7 @@ fun HomeScreen(
 
     val refreshScope = rememberCoroutineScope()
     var refreshing by remember { mutableStateOf(false) }
-    val allRoomsList by viewModel.getUserRooms().observeAsState()
+    val allRoomsList by viewModel.userRoomListDto.observeAsState(emptyList())
     val isReady by viewModel.isHomeScreenReady.observeAsState(false)
 
     fun refresh() = refreshScope.launch {
@@ -71,18 +71,14 @@ fun HomeScreen(
                 LazyColumn(
                     modifier = Modifier.fillMaxSize()
                 ) {
-
-                    if (allRoomsList != null) {
-                        items(allRoomsList!!) {
-                            RoomInUserRoomsList(
-                                viewModel = viewModel,
-                                snackbarHostState = snackbarHostState,
-                                nav = navController,
-                                room = it
-                            )
-                        }
+                    items(allRoomsList) {
+                        RoomInUserRoomsList(
+                            viewModel = viewModel,
+                            snackbarHostState = snackbarHostState,
+                            nav = navController,
+                            roomDto = it
+                        )
                     }
-
                 }
                 PullRefreshIndicator(refreshing, state, Modifier.align(Alignment.TopCenter))
 

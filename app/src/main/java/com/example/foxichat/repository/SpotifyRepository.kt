@@ -5,8 +5,7 @@ import android.app.Application
 import android.graphics.Bitmap
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
-import com.example.foxichat.spotifyAppRemote
-import com.example.foxichat.presentation.view_model.SpotifyViewModel
+import com.example.foxichat.SpotifyWorker
 import com.spotify.android.appremote.api.ConnectionParams
 import com.spotify.android.appremote.api.Connector
 import com.spotify.android.appremote.api.ContentApi
@@ -14,13 +13,11 @@ import com.spotify.android.appremote.api.SpotifyAppRemote
 import com.spotify.protocol.types.ImageUri
 import com.spotify.protocol.types.ListItem
 import com.spotify.protocol.types.ListItems
-import com.spotify.protocol.types.Track
 import com.spotify.sdk.android.auth.AuthorizationClient
 import com.spotify.sdk.android.auth.AuthorizationRequest
 import com.spotify.sdk.android.auth.AuthorizationResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 class SpotifyRepository (private val application: Application) {
@@ -67,7 +64,7 @@ class SpotifyRepository (private val application: Application) {
         SpotifyAppRemote.connect(application.applicationContext as Activity, connectionParams, object : Connector.ConnectionListener {
             override fun onConnected(appRemote: SpotifyAppRemote) {
                 // TODO NOTE: Initialization of BE related properties in the presentation layer is prohibited
-                spotifyAppRemote = appRemote
+                SpotifyWorker.authenticateSpotify(appRemote)
                 Log.d("SPOTIFY_AUTH", "Connected! Yay!")
                 //spotifyViewModel.connected()
                 // Now you can start interacting with App Remote
@@ -83,7 +80,7 @@ class SpotifyRepository (private val application: Application) {
 
 
     fun loadSpotifyContent() {
-        spotifyAppRemote?.contentApi?.getRecommendedContentItems(ContentApi.ContentType.DEFAULT)
+        SpotifyWorker.spotifyAppRemote?.contentApi?.getRecommendedContentItems(ContentApi.ContentType.DEFAULT)
             ?.setResultCallback { listItems ->
                 recommendedContent.value = listItems
 
@@ -97,7 +94,7 @@ class SpotifyRepository (private val application: Application) {
             if (recommendedContentChildren.value == null) recommendedContentChildren.value = mutableMapOf()
         }
 
-        spotifyAppRemote?.contentApi?.getChildrenOfItem(item, toIndex, 0)?.setResultCallback {
+        SpotifyWorker.spotifyAppRemote?.contentApi?.getChildrenOfItem(item, toIndex, 0)?.setResultCallback {
             recommendedContentChildren.value?.set(item, it)
             Log.d("LOADING_CHILDREN", recommendedContentChildren.value.toString())
         }?.setErrorCallback { throwable ->
@@ -109,7 +106,7 @@ class SpotifyRepository (private val application: Application) {
         uri.raw?.let { Log.d("SPOTI_", it) }
         if (uri.raw?.isNotBlank()!!) {
             Log.d("SPOTI_", "LOADING IMAGE")
-            val bitmap = spotifyAppRemote?.imagesApi?.getImage(uri)
+            val bitmap = SpotifyWorker.spotifyAppRemote?.imagesApi?.getImage(uri)
             bitmap?.setResultCallback { bitmap ->
                 image.value = bitmap
                 Log.d("SPOTI_", "SUCCESS")

@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,6 +39,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -47,6 +49,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -59,11 +62,13 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
+import com.example.foxichat.AuthenticationWorker
 import com.example.foxichat.R
-import com.example.foxichat.auth
 import com.example.foxichat.dto.MessageDto
 import com.example.foxichat.navigation.Screen
 import com.example.foxichat.presentation.view_model.ChatViewModel
+import com.example.foxichat.presentation.view_model.SpotifyViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -71,6 +76,7 @@ import kotlinx.coroutines.launch
 class Screens(
     private val nav: NavHostController,
     private val viewModel: ChatViewModel,
+    private val spotifyViewModel: SpotifyViewModel,
     private val snackbarHostState: SnackbarHostState,
 ) {
 
@@ -78,15 +84,130 @@ class Screens(
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun ChatScreen(chatId: String?, chatName: String?) {
-        val messages by viewModel.getMessages().observeAsState()
+        val messages by viewModel.messages.observeAsState()
         val state =
             rememberLazyListState(initialFirstVisibleItemIndex = messages?.size?.minus(1) ?: 0)
         val isReady = viewModel.isChatReady.observeAsState(false)
+        val currentSongDetails by spotifyViewModel.currentSongDetails.observeAsState("")
+        val currentImage by spotifyViewModel.getImage().observeAsState()
+        val isPlaying by SpotifyViewModel.isPlaying.observeAsState(false)
 
+        val playbackPosition by spotifyViewModel.playbackPosition.observeAsState(0)
+        val trackDuration by spotifyViewModel.trackDuration.observeAsState(0)
+
+        val passedMins by spotifyViewModel.passedMins.observeAsState(initial = "")
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
+            topBar = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CenterAlignedTopAppBar(
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            navigationIconContentColor = MaterialTheme.colorScheme.secondary,
+                            titleContentColor = MaterialTheme.colorScheme.secondary,
+                            actionIconContentColor = MaterialTheme.colorScheme.secondary,
+                        ),
+                        title = {
+                            Text(
+                                chatName ?: "",
+                            )
+                        },
 
+                        actions = {
+
+
+                        }
+                    )
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .shadow(10.dp),
+
+                        ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceAround
+                            ) {
+                                currentSongDetails?.let {
+                                    Text(
+                                        modifier = Modifier.padding(start = 20.dp),
+                                        text = it,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+                            }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceAround
+                            ) {
+                                Text(text = passedMins)
+                                PlaybackProgressBar(playbackPosition = playbackPosition, trackDuration = trackDuration)
+                                // Text(text = "$trackDuration")
+                            }
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceAround
+                            ) {
+                                AsyncImage(
+                                    model = currentImage,
+                                    contentDescription = "",
+                                    modifier = Modifier.size(50.dp)
+                                )
+                                IconButton(onClick = { spotifyViewModel.previous() }) {
+                                    Icon(
+                                        modifier = Modifier.size(30.dp),
+                                        painter = painterResource(id = R.drawable.back),
+                                        contentDescription = ""
+                                    )
+                                }
+                                IconButton(onClick = {
+                                    if (isPlaying) spotifyViewModel.pause() else spotifyViewModel.play()
+                                }
+                                ) {
+                                    Icon(
+                                        modifier = Modifier.size(30.dp),
+                                        painter = if (isPlaying) painterResource(id = R.drawable.pause) else painterResource(
+                                            id = R.drawable.play
+                                        ),
+                                        contentDescription = ""
+                                    )
+                                }
+                                IconButton(onClick = { spotifyViewModel.next() }) {
+                                    Icon(
+                                        modifier = Modifier.size(30.dp),
+                                        painter = painterResource(id = R.drawable.next),
+                                        contentDescription = ""
+                                    )
+                                }
+                                IconButton(onClick = { /*TODO*/ }) {
+                                    Icon(
+                                        modifier = Modifier.size(30.dp),
+                                        painter = painterResource(id = R.drawable.shuffle),
+                                        contentDescription = ""
+                                    )
+                                }
+
+                            }
+                        }
+                    }
+
+                }
+
+            },
 
             bottomBar = {
                 Box(
@@ -721,7 +842,7 @@ class Screens(
 
     @Composable
     fun SignInScreen() {
-        if (auth.currentUser != null) {
+        if (AuthenticationWorker.auth.currentUser != null) {
             nav.navigate(Screen.HOME.name)
         } else {
             val title = stringResource(id = R.string.welcome_text)

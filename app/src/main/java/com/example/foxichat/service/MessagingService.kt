@@ -3,11 +3,11 @@ package com.example.foxichat.service
 import android.app.NotificationManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.example.foxichat.AuthenticationWorker
 import com.example.foxichat.MainActivity
 import com.example.foxichat.R
 import com.example.foxichat.api.ApiFactory
 import com.example.foxichat.api.RetrofitClient
-import com.example.foxichat.auth
 import com.example.foxichat.dto.MessageDto
 import com.example.foxichat.repository.RemoteRepository
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -51,7 +51,7 @@ class MessagingService : FirebaseMessagingService() {
             //ChatViewModel.addToCurrentMessages(message)
 
 
-            if (authorId != auth.uid.toString()) {
+            if (authorId != AuthenticationWorker.auth.uid.toString()) {
                 val notification = NotificationCompat.Builder(this, MainActivity.FCM_CHANNEL_ID)
                     .setSmallIcon(R.drawable.logotype)
                     .setContentTitle(displayName)

@@ -6,13 +6,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
-import com.example.foxichat.auth
+import com.example.foxichat.AuthenticationWorker
 import com.example.foxichat.dto.MessageDto
-import com.example.foxichat.dto.Room
+import com.example.foxichat.dto.RoomDto
 import com.example.foxichat.dto.UserDto
 import com.example.foxichat.repository.RemoteRepository
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +23,7 @@ class ChatViewModel @Inject constructor(
 ) : ViewModel() {
 
     init {
-        auth = Firebase.auth
+        AuthenticationWorker.authenticate()
     }
 
     companion object {
@@ -35,11 +33,11 @@ class ChatViewModel @Inject constructor(
     val messages: MutableLiveData<MutableList<MessageDto>> by lazy {
         MutableLiveData<MutableList<MessageDto>>()
     }
-    val userRoomList: MutableLiveData<List<Room>> by lazy {
-        MutableLiveData<List<Room>>()
+    val userRoomListDto: MutableLiveData<List<RoomDto>> by lazy {
+        MutableLiveData<List<RoomDto>>()
     }
-    val roomsList: MutableLiveData<List<Room>> by lazy {
-        MutableLiveData<List<Room>>()
+    val roomsList: MutableLiveData<List<RoomDto>> by lazy {
+        MutableLiveData<List<RoomDto>>()
     }
 
     val isChatReady by lazy {
@@ -56,7 +54,7 @@ class ChatViewModel @Inject constructor(
     // *********************** INPUT VALIDATION *******************************
 
     fun isMessageFromMe(msg: MessageDto): Boolean {
-        return msg.authorId == auth.uid.toString()
+        return msg.authorId == AuthenticationWorker.auth.uid.toString()
     }
 
     fun validatePasswordField(p: String): Boolean {
@@ -110,7 +108,7 @@ class ChatViewModel @Inject constructor(
             remoteRepository.createNewRoom(
                 hostState,
                 name,
-                creatorId = auth.uid.toString()
+                creatorId = AuthenticationWorker.auth.uid.toString()
             )
         }
     }
@@ -121,29 +119,28 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    fun loadAllRooms(): MutableLiveData<List<Room>> {
+    fun loadAllRooms() {
         isAllRoomListReady.value = false
         viewModelScope.launch(Dispatchers.IO) {
-            remoteRepository.loadAllRooms {
+            roomsList.postValue(remoteRepository.loadAllRooms {
                 isAllRoomListReady.postValue(it)
-            }
+            })
         }
-        return roomsList
+
     }
 
 
-    fun loadUserRooms(): MutableLiveData<List<Room>> {
+    fun loadUserRooms() {
         isHomeScreenReady.value = false
         viewModelScope.launch(Dispatchers.IO) {
-            remoteRepository.loadUserRooms {
+            userRoomListDto.postValue(remoteRepository.loadUserRooms {
                 isHomeScreenReady.postValue(it)
-            }
+            })
         }
-        return userRoomList
     }
 
     fun signOut() {
-        auth.signOut()
+        AuthenticationWorker.auth.signOut()
     }
 
 
@@ -152,17 +149,17 @@ class ChatViewModel @Inject constructor(
             remoteRepository.addUserToRoom(
                 hostState = hostState,
                 roomId = id,
-                uid = auth.uid.toString()
+                uid = AuthenticationWorker.auth.uid.toString()
             )
         }
     }
 
     fun sendMessage(body: String, chatId: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            val messageDto = auth.currentUser?.displayName?.let {
+            val messageDto = AuthenticationWorker.auth.currentUser?.displayName?.let {
                 MessageDto(
                     "0".repeat(24),
-                    auth.uid.toString(),
+                    AuthenticationWorker.auth.uid.toString(),
                     authorName = it,
                     chatId,
                     body,
@@ -175,7 +172,7 @@ class ChatViewModel @Inject constructor(
 
     private fun sendNotificationToken() {
         viewModelScope.launch(Dispatchers.IO) {
-            remoteRepository.sendNotificationToken(auth.uid.toString())
+            remoteRepository.sendNotificationToken(AuthenticationWorker.auth.uid.toString())
         }
     }
 

@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.foxichat.R
-import com.example.foxichat.dto.Room
+import com.example.foxichat.dto.RoomDto
 import com.example.foxichat.navigation.Screen
 import com.example.foxichat.presentation.view_model.ChatViewModel
 
@@ -32,7 +32,7 @@ fun RoomInUserRoomsList(
     nav: NavHostController,
     snackbarHostState: SnackbarHostState,
     viewModel: ChatViewModel,
-    room: Room
+    roomDto: RoomDto
 ) {
     Box(
         modifier = Modifier
@@ -40,8 +40,8 @@ fun RoomInUserRoomsList(
             .size(100.dp)
             .shadow(0.5.dp)
             .clickable(onClick = {
-                viewModel.loadMessagesFromRoom(snackbarHostState, room.id)
-                nav.navigate(Screen.CHAT_SCREEN.name + "/${room.id}/${room.name}")
+                viewModel.loadMessagesFromRoom(snackbarHostState, roomDto.id)
+                nav.navigate(Screen.CHAT_SCREEN.name + "/${roomDto.id}/${roomDto.name}")
             }),
         contentAlignment = Alignment.CenterStart
 
@@ -69,7 +69,7 @@ fun RoomInUserRoomsList(
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
                 Text(
-                    text = room.name,
+                    text = roomDto.name,
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 16.sp

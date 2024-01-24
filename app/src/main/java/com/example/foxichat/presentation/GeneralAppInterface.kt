@@ -61,9 +61,6 @@ import com.example.foxichat.R
 import com.example.foxichat.navigation.BottomNavItems
 import com.example.foxichat.presentation.view_model.ChatViewModel
 import com.example.foxichat.presentation.view_model.SpotifyViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 val isNavBarVisible by lazy {
     MutableLiveData<Boolean>()
@@ -86,7 +83,7 @@ fun GeneralScaffold(
 
     var openAlertDialog by remember { mutableStateOf(false) }
 
-    val allRooms by viewModel.getAllRooms().observeAsState(listOf())
+    val allRooms by viewModel.roomsList.observeAsState(emptyList())
     val currentSongDetails by spotifyViewModel.currentSongDetails.observeAsState("")
     val currentImage by spotifyViewModel.getImage().observeAsState()
     val isPlaying by SpotifyViewModel.isPlaying.observeAsState(false)
@@ -96,7 +93,7 @@ fun GeneralScaffold(
 
     val passedMins by spotifyViewModel.passedMins.observeAsState(initial = "")
 
-    val currentSongImage by spotifyViewModel.currentSongImageUrl.observeAsState("https://cdn.pixabay.com/photo/2023/12/02/11/21/winter-8425500_1280.jpg")
+//    val currentSongImage by spotifyViewModel.currentSongImageUrl.observeAsState("https://cdn.pixabay.com/photo/2023/12/02/11/21/winter-8425500_1280.jpg")
 
     when {
         openAlertDialog -> {
@@ -306,12 +303,12 @@ fun GeneralScaffold(
                             horizontalArrangement = Arrangement.SpaceAround
                         ) {
                             TextButton(onClick = {
-                                CoroutineScope(Dispatchers.Main).launch { sheetState.hide() }
-                                    .invokeOnCompletion {
-                                        if (!sheetState.isVisible) {
-                                            showBottomSheet = false
-                                        }
-                                    }
+//                                CoroutineScope(Dispatchers.Main).launch { sheetState.hide() }
+//                                    .invokeOnCompletion {
+//                                        if (!sheetState.isVisible) {
+                                           showBottomSheet = false
+//                                        }
+//                                    }
                             }
                             ) {
                                 Text(text = stringResource(id = R.string.cancel))
@@ -329,7 +326,7 @@ fun GeneralScaffold(
                         ) {
                             items(allRooms) {
                                 RoomInJoinRoomList(
-                                    room = it,
+                                    roomDto = it,
                                     viewModel = viewModel,
                                     nav = navController,
                                     snackbarHostState = snackbarHostState
