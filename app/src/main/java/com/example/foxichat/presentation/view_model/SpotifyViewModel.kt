@@ -3,6 +3,7 @@ package com.example.foxichat.presentation.view_model
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.foxichat.SpotifyWorker
 import com.example.foxichat.repository.SpotifyRepository
 import com.spotify.protocol.types.ImageUri
@@ -11,6 +12,7 @@ import com.spotify.protocol.types.Track
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -19,8 +21,7 @@ class SpotifyViewModel @Inject constructor(
     private val repo : SpotifyRepository
 ) : ViewModel() {
     init {
-        println("VIEW_MODEL new instance")
-
+        trySpotify()
     }
     companion object {
         val isPlaying by lazy {
@@ -41,15 +42,12 @@ class SpotifyViewModel @Inject constructor(
     }
 
 
-
-
-    private fun authenticateSpotify() {
-
-    }
-
     fun trySpotify() {
-
-
+        viewModelScope.launch {
+            repo.tryConnectingToSpotify {
+                if (it) connected()
+            }
+        }
     }
 
 
@@ -81,7 +79,7 @@ class SpotifyViewModel @Inject constructor(
         }
 
     }
-    fun connected() {
+    private fun connected() {
         SpotifyWorker.spotifyAppRemote?.let { it ->
             it.playerApi.subscribeToPlayerState().setEventCallback {
                 val track: Track = it.track
@@ -96,9 +94,6 @@ class SpotifyViewModel @Inject constructor(
             }
 
         }
-
-
-
     }
     private fun loadImage(uri: ImageUri) {
 

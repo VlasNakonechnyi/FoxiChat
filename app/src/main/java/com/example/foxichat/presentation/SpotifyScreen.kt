@@ -42,7 +42,6 @@ fun SpotifyScreen(
 
     LaunchedEffect(Unit) {
         spotifyViewModel.loadSpotifyRecommendedContent()
-        spotifyViewModel.connected()
     }
 
     GeneralScaffold(

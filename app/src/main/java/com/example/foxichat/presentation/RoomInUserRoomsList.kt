@@ -37,8 +37,7 @@ fun RoomInUserRoomsList(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .size(100.dp)
-            .shadow(0.5.dp)
+            .padding(16.dp)
             .clickable(onClick = {
                 viewModel.loadMessagesFromRoom(snackbarHostState, roomDto.id)
                 nav.navigate(Screen.CHAT_SCREEN.name + "/${roomDto.id}/${roomDto.name}")

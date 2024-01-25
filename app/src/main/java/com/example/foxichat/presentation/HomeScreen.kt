@@ -38,14 +38,13 @@ fun HomeScreen(
 ) {
     LaunchedEffect(Unit) {
         viewModel.loadUserRooms()
-        spotifyViewModel.connected()
     }
 
     val refreshScope = rememberCoroutineScope()
     var refreshing by remember { mutableStateOf(false) }
     val allRoomsList by viewModel.userRoomListDto.observeAsState(emptyList())
     val isReady by viewModel.isHomeScreenReady.observeAsState(false)
-
+    
     fun refresh() = refreshScope.launch {
         refreshing = true
         val res = async { viewModel.loadUserRooms() }

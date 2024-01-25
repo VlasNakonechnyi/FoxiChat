@@ -7,8 +7,11 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.navigation.NavHostController
 import com.example.foxichat.AuthenticationWorker
-import com.example.foxichat.api.ApiFactory
+import com.example.foxichat.api.MessagingService
 import com.example.foxichat.api.RetrofitClient
+import com.example.foxichat.api.RoomService
+import com.example.foxichat.api.TokenService
+import com.example.foxichat.api.UserService
 import com.example.foxichat.dto.MessageDto
 import com.example.foxichat.dto.RoomDto
 import com.example.foxichat.dto.UserDto
@@ -29,7 +32,10 @@ import java.time.LocalDate
 import java.time.LocalTime
 
 class RemoteRepository(
-    private val api: ApiFactory,
+    private val userService: UserService,
+    private val tokenService: TokenService,
+    private val roomService: RoomService,
+    private val messagingService: MessagingService,
     private val app: Application
 ) {
     val TAG = "REMOTE_REPO"
@@ -62,7 +68,7 @@ class RemoteRepository(
         hostState: SnackbarHostState,
         userDto: UserDto
     ) {
-        api.createUser(
+        userService.createUser(
             userDto
         ).enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
@@ -94,7 +100,7 @@ class RemoteRepository(
             users = listOf(creatorId),
             timeStamp = timeToDbFormat()
         )
-        api.createRoom(roomDto).enqueue(object : Callback<ResponseBody> {
+        roomService.createRoom(roomDto).enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
                     CoroutineScope(Dispatchers.Main).launch {
@@ -126,7 +132,7 @@ class RemoteRepository(
         roomId: String,
         uid: String
     ) {
-        api.joinRoom(
+        roomService.joinRoom(
             mapOf(
                 "room_id" to roomId,
                 "uid" to uid
@@ -162,7 +168,7 @@ class RemoteRepository(
         Log.d(TAG, roomId)
         val gson = Gson()
         try {
-            val response = api.getMessagesFromRoom(roomId)
+            val response = messagingService.getMessagesFromRoom(roomId)
             response.string().let {
                 val messages =
                     gson.fromJson(it, Array<MessageDto>::class.java)
@@ -188,7 +194,7 @@ class RemoteRepository(
 
         if (messageDto != null) {
             //addToCurrentMessages(messageDto)
-            api.sendMessage(messageDto).enqueue(object : Callback<ResponseBody> {
+            messagingService.sendMessage(messageDto).enqueue(object : Callback<ResponseBody> {
                 override fun onResponse(
                     call: Call<ResponseBody>,
                     response: Response<ResponseBody>
@@ -220,8 +226,7 @@ class RemoteRepository(
                 // Get new FCM registration token
                 val token = task.result
                 Log.d(TAG, "Refreshed token: $token")
-                val retrofit = RetrofitClient.getClient()
-                val apiService = retrofit.create(ApiFactory::class.java)
+
 
                 val body = mapOf(
                     "userId" to uid,
@@ -229,7 +234,7 @@ class RemoteRepository(
                     "timestamp" to timeToDbFormat()
                 )
                 if (token != null) {
-                    apiService.sendNotificationToken(body).enqueue(object : Callback<ResponseBody> {
+                    tokenService.sendNotificationToken(body).enqueue(object : Callback<ResponseBody> {
                         override fun onResponse(
                             call: Call<ResponseBody>,
                             response: Response<ResponseBody>
@@ -263,7 +268,7 @@ class RemoteRepository(
     ): SnapshotStateList<RoomDto> {
         try {
             val gson = Gson()
-            val response = api.getUserRooms(AuthenticationWorker.auth.uid.toString())
+            val response = roomService.getUserRooms(AuthenticationWorker.auth.uid.toString())
             response.string().let {
                 val roomDtos = gson.fromJson(it, Array<RoomDto>::class.java)
                 insertRoomsToLocalDb(roomDtos)
@@ -279,7 +284,7 @@ class RemoteRepository(
     suspend fun loadAllRooms(onReadyChange: (Boolean) -> Unit): List<RoomDto> {
         try {
             val gson = Gson()
-            val response = api.getAllRooms()
+            val response = roomService.getAllRooms()
             response.string().let {
                 val roomDtos = gson.fromJson(it, Array<RoomDto>::class.java).asList()
                 println("ROOMS: $roomDtos")

@@ -46,9 +46,7 @@ fun SettingsScreen(
     viewModel: ChatViewModel,
     spotifyViewModel: SpotifyViewModel
 ) {
-    LaunchedEffect(Unit) {
-        spotifyViewModel.connected()
-    }
+
     GeneralScaffold(
         snackbarHostState = snackbarHostState,
         navController = navController,

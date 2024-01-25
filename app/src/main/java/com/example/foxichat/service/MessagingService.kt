@@ -6,7 +6,6 @@ import androidx.core.app.NotificationCompat
 import com.example.foxichat.AuthenticationWorker
 import com.example.foxichat.MainActivity
 import com.example.foxichat.R
-import com.example.foxichat.api.ApiFactory
 import com.example.foxichat.api.RetrofitClient
 import com.example.foxichat.dto.MessageDto
 import com.example.foxichat.repository.RemoteRepository

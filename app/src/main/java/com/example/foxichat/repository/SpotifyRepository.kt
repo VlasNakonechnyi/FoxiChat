@@ -53,26 +53,26 @@ class SpotifyRepository (private val application: Application) {
         builder.setScopes(arrayOf("streaming"))
         val request = builder.build()
 
-        AuthorizationClient.openLoginInBrowser(application.applicationContext as Activity, request);
+        //AuthorizationClient.openLoginInBrowser(application.applicationContext, request);
     }
-    fun trySpotify() {
+    fun tryConnectingToSpotify(callback : (Boolean) -> Unit) {
 
         val connectionParams = ConnectionParams.Builder(clientId)
             .setRedirectUri(redirectUri)
             .showAuthView(true)
             .build()
-        SpotifyAppRemote.connect(application.applicationContext as Activity, connectionParams, object : Connector.ConnectionListener {
+        SpotifyAppRemote.connect(application.applicationContext, connectionParams, object : Connector.ConnectionListener {
             override fun onConnected(appRemote: SpotifyAppRemote) {
                 // TODO NOTE: Initialization of BE related properties in the presentation layer is prohibited
                 SpotifyWorker.authenticateSpotify(appRemote)
                 Log.d("SPOTIFY_AUTH", "Connected! Yay!")
-                //spotifyViewModel.connected()
-                // Now you can start interacting with App Remote
+                callback(true)
 
             }
 
             override fun onFailure(throwable: Throwable) {
                 authenticateSpotify()
+                callback(false)
             }
         })
     }
