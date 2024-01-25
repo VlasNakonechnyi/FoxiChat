@@ -116,31 +116,31 @@ class MessagingService : FirebaseMessagingService() {
      *
      * @param token The new token.
      */
-    private fun sendRegistrationToServer(token: String?) {
-
-        val retrofit = RetrofitClient.getClient()
-        val apiService = retrofit.create(ApiFactory::class.java)
-        if (token != null) {
-            val body = mapOf(
-                "id" to token,
-//                "userId" to .auth.currentUser?.uid!!,
-//                "deviceId" to ChatAuth.auth.currentUser?.uid!!,
-                "timestamp" to LocalDateTime.now().toString()
-            )
-            apiService.sendNotificationToken(body).enqueue(object : Callback<ResponseBody> {
-                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-                    Log.d(TAG, response.body().toString())
-                }
-
-                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                    Log.d(TAG, t.message.toString())
-                }
-            })
-        } else {
-            //apiService.postRequest("invalid")
-        }
-        //Log.d(TAG, "sendRegistrationTokenToServer($token)")
-    }
+//    private fun sendRegistrationToServer(token: String?) {
+//
+//        val retrofit = RetrofitClient.getClient()
+//        val apiService = retrofit.create(ApiFactory::class.java)
+//        if (token != null) {
+//            val body = mapOf(
+//                "id" to token,
+////                "userId" to .auth.currentUser?.uid!!,
+////                "deviceId" to ChatAuth.auth.currentUser?.uid!!,
+//                "timestamp" to LocalDateTime.now().toString()
+//            )
+//            apiService.sendNotificationToken(body).enqueue(object : Callback<ResponseBody> {
+//                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+//                    Log.d(TAG, response.body().toString())
+//                }
+//
+//                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+//                    Log.d(TAG, t.message.toString())
+//                }
+//            })
+//        } else {
+//            //apiService.postRequest("invalid")
+//        }
+//        //Log.d(TAG, "sendRegistrationTokenToServer($token)")
+//    }
 
     /**
      * Create and show a simple notification containing the received FCM message.
