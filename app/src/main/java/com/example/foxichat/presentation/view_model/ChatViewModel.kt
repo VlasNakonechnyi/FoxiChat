@@ -22,9 +22,7 @@ class ChatViewModel @Inject constructor(
     private val remoteRepository: RemoteRepository
 ) : ViewModel() {
 
-    init {
-        AuthenticationWorker.authenticate()
-    }
+
 
     companion object {
         private const val WHITESPACE_CHAR = ' '
@@ -49,7 +47,10 @@ class ChatViewModel @Inject constructor(
     val isAllRoomListReady by lazy {
         MutableLiveData<Boolean>()
     }
-
+    init {
+        AuthenticationWorker.authenticate()
+        loadUserRooms()
+    }
 
     // *********************** INPUT VALIDATION *******************************
 
@@ -131,8 +132,9 @@ class ChatViewModel @Inject constructor(
 
 
     fun loadUserRooms() {
-        isHomeScreenReady.value = false
+
         viewModelScope.launch(Dispatchers.IO) {
+            isHomeScreenReady.postValue(false)
             userRoomListDto.postValue(remoteRepository.loadUserRooms {
                 isHomeScreenReady.postValue(it)
             })

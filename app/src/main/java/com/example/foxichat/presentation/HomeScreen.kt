@@ -37,7 +37,8 @@ fun HomeScreen(
     spotifyViewModel: SpotifyViewModel
 ) {
     LaunchedEffect(Unit) {
-        viewModel.loadUserRooms()
+        println("launched effect")
+
     }
 
     val refreshScope = rememberCoroutineScope()
